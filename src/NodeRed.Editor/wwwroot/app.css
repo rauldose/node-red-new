@@ -595,6 +595,31 @@ span.red-ui-header-logo img {
 }
 
 /* ============================================================
+   SOURCE: packages/node_modules/@node-red/editor-client/src/sass/palette.scss
+   LINES: 230-235
+   ============================================================ */
+.red-ui-palette-icon-fa {
+    color: white;
+    position: absolute;
+    top: calc(50% - 7px);
+    left: 3px;
+}
+
+/* Palette closed state */
+.red-ui-palette-closed #red-ui-palette {
+    width: 8px;
+}
+
+.red-ui-palette-closed #red-ui-palette .red-ui-component-footer {
+    display: none;
+}
+
+.red-ui-palette-closed #red-ui-palette-search,
+.red-ui-palette-closed #red-ui-palette-container {
+    display: none;
+}
+
+/* ============================================================
    Workspace
    ============================================================ */
 #red-ui-workspace {
