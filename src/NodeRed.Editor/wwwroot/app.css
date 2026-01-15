@@ -2257,3 +2257,295 @@ g.red-ui-flow-link-selected path.red-ui-flow-link-line {
 .red-ui-keyboard-action {
     color: var(--red-ui-secondary-text-color);
 }
+
+/* ============================================================
+   SOURCE: packages/node_modules/@node-red/editor-client/src/sass/typedInput.scss
+   TypedInput Widget - Pixel-perfect translation
+   ============================================================ */
+.red-ui-typedInput-container {
+    display: flex;
+    position: relative;
+}
+
+.red-ui-typedInput-type-select {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--red-ui-form-button-background);
+    border: 1px solid var(--red-ui-form-input-border-color);
+    border-right: none;
+    padding: 6px 10px;
+    cursor: pointer;
+    min-width: 50px;
+    font-size: 12px;
+    color: var(--red-ui-primary-text-color);
+}
+
+.red-ui-typedInput-type-select:hover {
+    background: var(--red-ui-secondary-background-hover);
+}
+
+.red-ui-typedInput-type-label {
+    font-family: var(--red-ui-monospace-font);
+    font-weight: 500;
+}
+
+.red-ui-typedInput-options {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: var(--red-ui-secondary-background);
+    border: 1px solid var(--red-ui-form-input-border-color);
+    box-shadow: 0 2px 10px var(--red-ui-shadow);
+    z-index: 100;
+    min-width: 150px;
+}
+
+.red-ui-typedInput-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.red-ui-typedInput-option:hover {
+    background: var(--red-ui-secondary-background-hover);
+}
+
+.red-ui-typedInput-option.selected {
+    background: var(--red-ui-secondary-background-selected);
+}
+
+.red-ui-typedInput-option-icon {
+    width: 20px;
+    text-align: center;
+    font-family: var(--red-ui-monospace-font);
+    color: var(--red-ui-secondary-text-color);
+}
+
+.red-ui-typedInput-input {
+    flex: 1;
+    border: 1px solid var(--red-ui-form-input-border-color);
+    padding: 6px 8px;
+    font-size: 14px;
+    font-family: var(--red-ui-primary-font);
+    color: var(--red-ui-form-text-color);
+    background: var(--red-ui-form-input-background);
+    min-width: 0;
+}
+
+.red-ui-typedInput-input:focus {
+    outline: none;
+    border-color: var(--red-ui-form-input-focus-color);
+    box-shadow: 0 0 0 1px var(--red-ui-form-input-focus-color);
+}
+
+.red-ui-typedInput-value-label {
+    flex: 1;
+    border: 1px solid var(--red-ui-form-input-border-color);
+    padding: 6px 8px;
+    font-size: 14px;
+    background: var(--red-ui-form-input-background-disabled);
+    color: var(--red-ui-form-text-color-disabled);
+    display: flex;
+    align-items: center;
+}
+
+/* ============================================================
+   SOURCE: packages/node_modules/@node-red/editor-client/src/sass/groups.scss
+   Groups - Pixel-perfect translation
+   ============================================================ */
+.red-ui-flow-group {
+    cursor: move;
+}
+
+.red-ui-flow-group rect.red-ui-flow-group-outline {
+    fill: none;
+    stroke: var(--red-ui-group-border-color, #999);
+    stroke-width: 2;
+    rx: 5;
+    ry: 5;
+}
+
+.red-ui-flow-group rect.red-ui-flow-group-body {
+    fill: var(--red-ui-group-fill-color, transparent);
+    fill-opacity: var(--red-ui-group-fill-opacity, 0.1);
+}
+
+.red-ui-flow-group.red-ui-flow-group-selected rect.red-ui-flow-group-outline {
+    stroke: var(--red-ui-node-selected-color);
+    stroke-width: 2;
+}
+
+.red-ui-flow-group-label {
+    fill: var(--red-ui-group-label-color, #a4a4a4);
+    font-size: 14px;
+}
+
+.red-ui-flow-group-handle {
+    fill: var(--red-ui-node-selected-color);
+    stroke: var(--red-ui-secondary-background);
+    stroke-width: 2;
+    cursor: nwse-resize;
+}
+
+.red-ui-flow-group-handle.red-ui-flow-group-handle-n,
+.red-ui-flow-group-handle.red-ui-flow-group-handle-s {
+    cursor: ns-resize;
+}
+
+.red-ui-flow-group-handle.red-ui-flow-group-handle-e,
+.red-ui-flow-group-handle.red-ui-flow-group-handle-w {
+    cursor: ew-resize;
+}
+
+/* ============================================================
+   SOURCE: packages/node_modules/@node-red/editor-client/src/sass/subflow.scss
+   Subflows - Pixel-perfect translation
+   ============================================================ */
+.red-ui-palette-node-subflow {
+    border-style: dashed;
+}
+
+.red-ui-flow-subflow-port {
+    cursor: move;
+}
+
+.red-ui-flow-subflow-port rect {
+    fill: var(--red-ui-secondary-background);
+    stroke: var(--red-ui-node-border);
+    stroke-width: 1;
+    rx: 5;
+    ry: 5;
+}
+
+.red-ui-flow-subflow-port.red-ui-flow-subflow-port-input rect {
+    fill: var(--red-ui-subflow-input-color, #a6bbcf);
+}
+
+.red-ui-flow-subflow-port.red-ui-flow-subflow-port-output rect {
+    fill: var(--red-ui-subflow-output-color, #a6bbcf);
+}
+
+.red-ui-flow-subflow-port.selected rect {
+    stroke: var(--red-ui-node-selected-color);
+    stroke-width: 2;
+}
+
+.red-ui-flow-subflow-port text {
+    fill: var(--red-ui-primary-text-color);
+    font-size: 14px;
+}
+
+.red-ui-flow-node.red-ui-flow-subflow-instance {
+    stroke-dasharray: none;
+}
+
+/* Subflow tab indicator */
+.red-ui-workspace-tabs li.red-ui-workspace-tab-subflow {
+    font-style: italic;
+}
+
+.red-ui-workspace-tabs li.red-ui-workspace-tab-subflow::before {
+    content: "⟳ ";
+}
+
+/* ============================================================
+   Animations (Section 11)
+   ============================================================ */
+/* Tray slide animation - 200ms ease */
+.red-ui-tray {
+    transition: right 0.2s ease;
+}
+
+/* Panel collapse animation - 200ms ease */
+.red-ui-palette,
+.red-ui-sidebar {
+    transition: width 0.2s ease;
+}
+
+/* Node status pulse animation */
+@keyframes statusPulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.red-ui-flow-node-status-group circle.pulsing {
+    animation: statusPulse 1s ease-in-out infinite;
+}
+
+/* Deploy progress animation */
+@keyframes deployProgress {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.red-ui-deploy-button.deploying i {
+    animation: deployProgress 1s linear infinite;
+}
+
+/* Tooltip fade */
+.red-ui-popover {
+    animation: fadeIn 0.15s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* ============================================================
+   Cursor States (Section 15)
+   ============================================================ */
+.red-ui-view { cursor: crosshair; }
+.red-ui-flow-node { cursor: move; }
+.red-ui-flow-port { cursor: crosshair; }
+.red-ui-flow-link-background { cursor: pointer; }
+.red-ui-palette-node { cursor: grab; }
+.red-ui-palette-node:active { cursor: grabbing; }
+.red-ui-sidebar-separator { cursor: col-resize; }
+.red-ui-palette-grip { cursor: col-resize; }
+input, textarea, select { cursor: text; }
+button, .red-ui-button { cursor: pointer; }
+.disabled, [disabled] { cursor: not-allowed; }
+
+/* ============================================================
+   Additional Node States (Section 2)
+   ============================================================ */
+/* Unknown node type */
+.red-ui-flow-node.red-ui-flow-node-unknown rect {
+    fill: #f99;
+    stroke: #c00;
+    stroke-dasharray: 5,3;
+}
+
+/* Disabled node */
+.red-ui-flow-node.red-ui-flow-node-disabled {
+    opacity: 0.5;
+}
+
+.red-ui-flow-node.red-ui-flow-node-disabled rect {
+    stroke-dasharray: 8,4;
+}
+
+/* Node with errors */
+.red-ui-flow-node.red-ui-flow-node-error rect {
+    stroke: var(--red-ui-text-color-error);
+    stroke-width: 2;
+}
+
+/* Comment node */
+.red-ui-flow-node.red-ui-flow-node-comment rect {
+    fill: transparent;
+    stroke: var(--red-ui-tertiary-text-color);
+    stroke-dasharray: 5,3;
+}
+
+/* Junction node */
+.red-ui-flow-node.red-ui-flow-node-junction rect {
+    rx: 15;
+    ry: 15;
+}
