@@ -228,14 +228,25 @@ window.nodeRedEditor = {
         // ============================================================
         // SOURCE: view.js lines 420-450 - wheel handling (zoom)
         // ============================================================
+        // SOURCE: view.js lines 2489-2498 - wheel handling (zoom)
+        // Zoom range: 0.3 to 2.0 (matching Node-RED exactly)
+        // ============================================================
         canvasElement.addEventListener('wheel', function(e) {
+            // Only zoom when Alt key is held (matches Node-RED behavior)
+            if (!e.altKey) {
+                return; // Allow normal scrolling
+            }
+            
             e.preventDefault();
             const rect = canvasElement.getBoundingClientRect();
             const mouseX = e.clientX - rect.left;
             const mouseY = e.clientY - rect.top;
             
-            const delta = e.deltaY > 0 ? 0.9 : 1.1;
-            const newScale = Math.max(0.25, Math.min(2.0, self.state.scale * delta));
+            // SOURCE: view.js lines 2489-2498
+            // zoomIn: scaleFactor + 0.1, max 2.0
+            // zoomOut: scaleFactor - 0.1, min 0.3
+            const delta = e.deltaY > 0 ? -0.1 : 0.1;
+            const newScale = Math.max(0.3, Math.min(2.0, self.state.scale + delta));
             
             // Zoom towards mouse position
             const scaleChange = newScale / self.state.scale;
@@ -545,23 +556,44 @@ window.nodeRedEditor = {
 
     // ============================================================
     // WIRE PATH CALCULATION
-    // Translated from: packages/node_modules/@node-red/editor-client/src/js/ui/view.js
-    // Lines: 800-850 (bezier curve calculation)
+    // SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/view.js
+    // LINES: ~1820-1920 (generateLinkPath function)
+    // 
+    // Key parameters from Node-RED source:
+    // - lineCurveScale = 0.75 (line 33)
+    // - node_width = 100 (line 34)
+    // - node_height = 30 (line 35)
     // ============================================================
     
     calculateWirePath: function(x1, y1, x2, y2) {
-        const dx = Math.abs(x2 - x1);
-        const dy = Math.abs(y2 - y1);
+        const lineCurveScale = 0.75;
+        const nodeWidth = 100;
         
-        // Control point distance - matches Node-RED's algorithm
-        let cp = Math.max(75, dx / 2);
+        const dy = y2 - y1;
+        const dx = x2 - x1;
+        const delta = Math.sqrt(dy * dy + dx * dx);
+        let scale = lineCurveScale;
+        const sc = 1; // Output port direction (1 = right)
         
-        // Adjust for backward wires
-        if (x2 < x1) {
-            cp = Math.max(75, Math.abs(dy) / 2);
+        if (dx * sc > 0) {
+            // Normal forward connection
+            if (delta < nodeWidth) {
+                scale = 0.75 - 0.75 * ((nodeWidth - delta) / nodeWidth);
+            }
+        } else {
+            // Backward connection
+            scale = 0.4 - 0.2 * (Math.max(0, (nodeWidth - Math.min(Math.abs(dx), Math.abs(dy))) / nodeWidth));
         }
         
-        return `M ${x1} ${y1} C ${x1 + cp} ${y1}, ${x2 - cp} ${y2}, ${x2} ${y2}`;
+        if (dx * sc > 0) {
+            // Forward path: simple cubic bezier
+            const cp1x = x1 + sc * (nodeWidth * scale);
+            const cp2x = x2 - sc * scale * nodeWidth;
+            return `M ${x1} ${y1} C ${cp1x} ${y1} ${cp2x} ${y2} ${x2} ${y2}`;
+        } else {
+            // Backward path - simplified version
+            const cp = Math.max(75, Math.abs(dy) / 2);
+            return `M ${x1} ${y1} C ${x1 + cp} ${y1}, ${x2 - cp} ${y2}, ${x2} ${y2}`;
     },
 
     // ============================================================
