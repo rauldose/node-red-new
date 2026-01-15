@@ -1406,7 +1406,7 @@ g.red-ui-flow-link-selected path.red-ui-flow-link-line {
 
 /* ============================================================
    Shade Overlay
-   SOURCE: packages/node_modules/@node-red/editor-client/src/sass/ui/common/shade.scss
+   NOTE: This is a NodeRed.NET implementation for modal dimming.
    The shade dims the background but should NOT block pointer events
    for elements above it (like the tray which has higher z-index).
    ============================================================ */
