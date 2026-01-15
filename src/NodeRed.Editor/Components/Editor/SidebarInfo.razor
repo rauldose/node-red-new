@@ -1,0 +1,34 @@
+@* Sidebar Info Tab *@
+@using NodeRed.Editor.Services
+@inject EditorState State
+
+<div class="red-ui-sidebar-info">
+    <div class="red-ui-sidebar-header">
+        <span>Information</span>
+    </div>
+    <div class="red-ui-sidebar-info-content">
+        @if (State.SelectedNodes.Any())
+        {
+            var node = State.SelectedNodes.First();
+            <div class="red-ui-info-outline">
+                <h4>@node.Type</h4>
+                <dl>
+                    <dt>ID</dt>
+                    <dd>@node.Id</dd>
+                    <dt>Name</dt>
+                    <dd>@(node.Name ?? "(none)")</dd>
+                    <dt>Type</dt>
+                    <dd>@node.Type</dd>
+                </dl>
+            </div>
+        }
+        else
+        {
+            <div class="red-ui-info-outline">
+                <h4>Node-RED.NET</h4>
+                <p>Select a node to see its information.</p>
+                <p>Version: @State.Version</p>
+            </div>
+        }
+    </div>
+</div>

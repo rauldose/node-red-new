@@ -1,0 +1,248 @@
+@* ============================================================
+   SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/view.js
+   ============================================================
+   Main workspace/canvas component for flow editing.
+   ============================================================ *@
+
+@using NodeRed.Editor.Services
+@inject EditorState State
+@inject IJSRuntime JS
+
+<div class="red-ui-workspace-container">
+    @* Tab bar for flows *@
+    <div class="red-ui-workspace-tabs">
+        <ul class="red-ui-tabs">
+            @foreach (var flow in State.Flows)
+            {
+                <li class="red-ui-tab @(flow.Id == State.ActiveFlowId ? "active" : "")"
+                    @onclick="() => SelectFlow(flow.Id)">
+                    <span class="red-ui-tab-label">@flow.Label</span>
+                    @if (flow.Disabled)
+                    {
+                        <i class="fa fa-ban red-ui-tab-icon-disabled"></i>
+                    }
+                </li>
+            }
+            <li class="red-ui-tab-button" @onclick="AddFlow">
+                <i class="fa fa-plus"></i>
+            </li>
+        </ul>
+    </div>
+
+    @* Canvas area *@
+    <div class="red-ui-workspace-chart" 
+         @ondrop="OnDrop" 
+         @ondragover="OnDragOver"
+         @ondragover:preventDefault="true"
+         @onclick="OnCanvasClick"
+         @onmousemove="OnMouseMove">
+        
+        <svg class="red-ui-workspace-chart-svg" 
+             width="100%" 
+             height="100%"
+             viewBox="@ViewBox">
+            
+            @* Grid pattern *@
+            <defs>
+                <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                    <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f0f0f0" stroke-width="0.5"/>
+                </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#grid)" />
+            
+            @* Wires/Links *@
+            <g class="red-ui-workspace-chart-wires">
+                @foreach (var wire in GetActiveFlowWires())
+                {
+                    <path class="red-ui-workspace-wire @(wire.Selected ? "selected" : "")"
+                          d="@wire.Path"
+                          stroke="@wire.Color"
+                          stroke-width="3"
+                          fill="none"
+                          @onclick="() => SelectWire(wire)" />
+                }
+            </g>
+            
+            @* Nodes *@
+            <g class="red-ui-workspace-chart-nodes">
+                @foreach (var node in GetActiveFlowNodes())
+                {
+                    <g class="red-ui-workspace-node @(node.Selected ? "selected" : "")"
+                       transform="translate(@node.X, @node.Y)"
+                       @onclick="() => SelectNode(node)"
+                       @ondblclick="() => EditNode(node)">
+                        
+                        @* Node body *@
+                        <rect class="red-ui-workspace-node-body"
+                              width="@node.Width" 
+                              height="@node.Height"
+                              rx="5" ry="5"
+                              fill="@node.Color" />
+                        
+                        @* Node label *@
+                        <text class="red-ui-workspace-node-label"
+                              x="@(node.Width / 2)" 
+                              y="@(node.Height / 2 + 4)"
+                              text-anchor="middle">
+                            @node.Label
+                        </text>
+                        
+                        @* Input ports *@
+                        @if (node.Inputs > 0)
+                        {
+                            <rect class="red-ui-workspace-port-input"
+                                  x="-5" y="@(node.Height / 2 - 5)"
+                                  width="10" height="10"
+                                  rx="2" ry="2" />
+                        }
+                        
+                        @* Output ports *@
+                        @for (int i = 0; i < node.Outputs; i++)
+                        {
+                            var portY = node.Outputs == 1 
+                                ? node.Height / 2 - 5 
+                                : (node.Height / (node.Outputs + 1)) * (i + 1) - 5;
+                            
+                            <rect class="red-ui-workspace-port-output"
+                                  x="@(node.Width - 5)" y="@portY"
+                                  width="10" height="10"
+                                  rx="2" ry="2" />
+                        }
+                        
+                        @* Status indicator *@
+                        @if (!string.IsNullOrEmpty(node.StatusText))
+                        {
+                            <g transform="translate(0, @(node.Height + 5))">
+                                <circle r="5" cx="10" cy="5" 
+                                        fill="@(node.StatusFill ?? "#ccc")" />
+                                <text x="20" y="9" class="red-ui-workspace-node-status">
+                                    @node.StatusText
+                                </text>
+                            </g>
+                        }
+                    </g>
+                }
+            </g>
+            
+            @* Selection box (if dragging) *@
+            @if (State.IsSelecting)
+            {
+                <rect class="red-ui-workspace-lasso"
+                      x="@Math.Min(State.SelectionStart.X, State.SelectionEnd.X)"
+                      y="@Math.Min(State.SelectionStart.Y, State.SelectionEnd.Y)"
+                      width="@Math.Abs(State.SelectionEnd.X - State.SelectionStart.X)"
+                      height="@Math.Abs(State.SelectionEnd.Y - State.SelectionStart.Y)"
+                      fill="rgba(100,100,200,0.1)"
+                      stroke="#666"
+                      stroke-dasharray="4,4" />
+            }
+        </svg>
+    </div>
+</div>
+
+@code {
+    private string ViewBox => $"0 0 {State.CanvasWidth} {State.CanvasHeight}";
+
+    private List<FlowNode> GetActiveFlowNodes()
+    {
+        return State.Nodes.Where(n => n.FlowId == State.ActiveFlowId).ToList();
+    }
+
+    private List<FlowWire> GetActiveFlowWires()
+    {
+        return State.Wires.Where(w => w.FlowId == State.ActiveFlowId).ToList();
+    }
+
+    private void SelectFlow(string flowId)
+    {
+        State.ActiveFlowId = flowId;
+        StateHasChanged();
+    }
+
+    private void AddFlow()
+    {
+        var newFlow = new Flow
+        {
+            Id = NodeRed.Util.Util.GenerateId(),
+            Label = $"Flow {State.Flows.Count + 1}",
+            Type = "tab"
+        };
+        State.Flows.Add(newFlow);
+        State.ActiveFlowId = newFlow.Id;
+        State.MarkDirty();
+        StateHasChanged();
+    }
+
+    private void SelectNode(FlowNode node)
+    {
+        if (!State.IsMultiSelect)
+        {
+            foreach (var n in State.Nodes) n.Selected = false;
+            foreach (var w in State.Wires) w.Selected = false;
+        }
+        node.Selected = !node.Selected;
+        StateHasChanged();
+    }
+
+    private void SelectWire(FlowWire wire)
+    {
+        if (!State.IsMultiSelect)
+        {
+            foreach (var n in State.Nodes) n.Selected = false;
+            foreach (var w in State.Wires) w.Selected = false;
+        }
+        wire.Selected = !wire.Selected;
+        StateHasChanged();
+    }
+
+    private void EditNode(FlowNode node)
+    {
+        State.OpenNodeEditor(node);
+        StateHasChanged();
+    }
+
+    private void OnCanvasClick()
+    {
+        if (!State.IsMultiSelect)
+        {
+            foreach (var n in State.Nodes) n.Selected = false;
+            foreach (var w in State.Wires) w.Selected = false;
+            StateHasChanged();
+        }
+    }
+
+    private void OnDragOver()
+    {
+        // Allow drop
+    }
+
+    private void OnDrop()
+    {
+        if (State.DraggedNode is not null)
+        {
+            var newNode = new FlowNode
+            {
+                Id = NodeRed.Util.Util.GenerateId(),
+                Type = State.DraggedNode.Type,
+                Label = State.DraggedNode.Label ?? State.DraggedNode.Type,
+                FlowId = State.ActiveFlowId,
+                X = State.DropPosition.X,
+                Y = State.DropPosition.Y,
+                Width = 120,
+                Height = 30,
+                Color = State.DraggedNode.Color,
+                Inputs = State.DraggedNode.Inputs,
+                Outputs = State.DraggedNode.Outputs
+            };
+            State.Nodes.Add(newNode);
+            State.DraggedNode = null;
+            State.MarkDirty();
+            StateHasChanged();
+        }
+    }
+
+    private void OnMouseMove(MouseEventArgs e)
+    {
+        State.DropPosition = new Point((int)e.OffsetX, (int)e.OffsetY);
+    }
+}

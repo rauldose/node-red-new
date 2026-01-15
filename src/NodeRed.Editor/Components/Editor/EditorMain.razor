@@ -1,0 +1,148 @@
+@* ============================================================
+   SOURCE: packages/node_modules/@node-red/editor-client/src/js/red.js
+   and packages/node_modules/@node-red/editor-client/src/js/ui/view.js
+   ============================================================
+   Copyright JS Foundation and other contributors, http://js.foundation
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+   ============================================================ *@
+
+@using NodeRed.Editor.Services
+@inject EditorState State
+@inject IJSRuntime JS
+
+<div id="red-ui-editor" class="red-ui-editor">
+    <div id="red-ui-header">
+        <span class="red-ui-header-logo">
+            <span>Node-RED.NET</span>
+        </span>
+        <ul class="red-ui-header-toolbar">
+            <li>
+                <button class="red-ui-deploy-button" @onclick="DeployAsync">
+                    <span>Deploy</span>
+                </button>
+            </li>
+            <li>
+                <a id="red-ui-header-button-sidemenu" class="button" @onclick="ToggleMenu">
+                    <i class="fa fa-bars"></i>
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <div id="red-ui-main-container" class="@(State.SidebarOpen ? "" : "red-ui-sidebar-closed")">
+        @* Palette - left side *@
+        <div id="red-ui-palette" class="@(State.PaletteOpen ? "" : "hide")">
+            <Palette />
+        </div>
+
+        @* Workspace - center canvas *@
+        <div id="red-ui-workspace">
+            <Workspace />
+        </div>
+
+        @* Sidebar - right side *@
+        <div id="red-ui-sidebar" class="@(State.SidebarOpen ? "" : "hide")">
+            <Sidebar />
+        </div>
+
+        @* Editor stack for trays *@
+        <div id="red-ui-editor-stack" tabindex="-1">
+            @if (State.CurrentTray is not null)
+            {
+                <Tray TrayConfig="State.CurrentTray" />
+            }
+        </div>
+    </div>
+
+    @* Loading progress indicator *@
+    @if (State.IsLoading)
+    {
+        <div id="red-ui-loading-progress">
+            <div>
+                <div class="red-ui-loading-bar-label">@State.LoadingMessage</div>
+                <div class="red-ui-loading-bar">
+                    <span style="width: @(State.LoadingProgress)%"></span>
+                </div>
+            </div>
+        </div>
+    }
+
+    @* Full screen shade for dialogs *@
+    <div id="red-ui-full-shade" class="@(State.ShowShade ? "" : "hide")"></div>
+</div>
+
+@code {
+    // ============================================================
+    // ORIGINAL CODE (red.js lines 931-956):
+    // ------------------------------------------------------------
+    // function init(options) { ... }
+    // ------------------------------------------------------------
+    // TRANSLATION:
+    // ------------------------------------------------------------
+    protected override async Task OnInitializedAsync()
+    {
+        State.IsLoading = true;
+        State.LoadingMessage = "Initializing...";
+        State.LoadingProgress = 0;
+
+        try
+        {
+            // Load settings
+            State.LoadingMessage = "Loading settings...";
+            State.LoadingProgress = 10;
+            await State.LoadSettingsAsync();
+
+            // Load nodes
+            State.LoadingMessage = "Loading nodes...";
+            State.LoadingProgress = 30;
+            await State.LoadNodesAsync();
+
+            // Load flows
+            State.LoadingMessage = "Loading flows...";
+            State.LoadingProgress = 70;
+            await State.LoadFlowsAsync();
+
+            State.LoadingMessage = "Complete";
+            State.LoadingProgress = 100;
+        }
+        finally
+        {
+            State.IsLoading = false;
+            StateHasChanged();
+        }
+    }
+    // ============================================================
+
+    private async Task DeployAsync()
+    {
+        State.IsDeploying = true;
+        StateHasChanged();
+
+        try
+        {
+            await State.DeployFlowsAsync();
+        }
+        finally
+        {
+            State.IsDeploying = false;
+            StateHasChanged();
+        }
+    }
+
+    private void ToggleMenu()
+    {
+        State.MenuOpen = !State.MenuOpen;
+        StateHasChanged();
+    }
+}

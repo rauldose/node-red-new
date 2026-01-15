@@ -1,0 +1,109 @@
+@* Node Editor Component *@
+@using NodeRed.Editor.Services
+@inject EditorState State
+
+<div class="red-ui-node-editor">
+    <div class="red-ui-form-row">
+        <label for="node-name">Name</label>
+        <input type="text" id="node-name" @bind="Node.Name" placeholder="Name" />
+    </div>
+
+    @* Common properties based on node type *@
+    @if (Node.Type == "inject")
+    {
+        <div class="red-ui-form-row">
+            <label>Payload</label>
+            <select @bind="PayloadType">
+                <option value="str">string</option>
+                <option value="num">number</option>
+                <option value="bool">boolean</option>
+                <option value="json">JSON</option>
+                <option value="date">timestamp</option>
+            </select>
+        </div>
+        @if (PayloadType != "date")
+        {
+            <div class="red-ui-form-row">
+                <label></label>
+                <input type="text" @bind="PayloadValue" />
+            </div>
+        }
+        <div class="red-ui-form-row">
+            <label>Topic</label>
+            <input type="text" @bind="Topic" />
+        </div>
+        <div class="red-ui-form-row">
+            <label>Repeat</label>
+            <select @bind="RepeatType">
+                <option value="none">none</option>
+                <option value="interval">interval</option>
+                <option value="cron">at specific time</option>
+            </select>
+        </div>
+    }
+    else if (Node.Type == "debug")
+    {
+        <div class="red-ui-form-row">
+            <label>Output</label>
+            <select @bind="DebugOutput">
+                <option value="msg">message property</option>
+                <option value="full">complete msg object</option>
+            </select>
+        </div>
+        <div class="red-ui-form-row">
+            <label>To</label>
+            <select @bind="DebugTarget">
+                <option value="debug">debug window</option>
+                <option value="console">system console</option>
+                <option value="status">node status</option>
+            </select>
+        </div>
+    }
+    else if (Node.Type == "function")
+    {
+        <div class="red-ui-form-row">
+            <label>Function</label>
+            <textarea rows="10" @bind="FunctionCode" class="red-ui-code-editor"></textarea>
+        </div>
+        <div class="red-ui-form-row">
+            <label>Outputs</label>
+            <input type="number" @bind="Node.Outputs" min="1" max="10" />
+        </div>
+    }
+    else
+    {
+        @* Generic property editor *@
+        <div class="red-ui-form-row">
+            <label>Properties</label>
+            <p class="red-ui-form-hint">Configure node properties</p>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public FlowNode Node { get; set; } = new();
+
+    private string PayloadType { get; set; } = "str";
+    private string PayloadValue { get; set; } = "";
+    private string Topic { get; set; } = "";
+    private string RepeatType { get; set; } = "none";
+    private string DebugOutput { get; set; } = "msg";
+    private string DebugTarget { get; set; } = "debug";
+    private string FunctionCode { get; set; } = "return msg;";
+
+    protected override void OnParametersSet()
+    {
+        // Load node properties
+        if (Node.Properties is not null)
+        {
+            PayloadType = Node.Properties.GetValueOrDefault("payloadType")?.ToString() ?? "str";
+            PayloadValue = Node.Properties.GetValueOrDefault("payload")?.ToString() ?? "";
+            Topic = Node.Properties.GetValueOrDefault("topic")?.ToString() ?? "";
+            RepeatType = Node.Properties.GetValueOrDefault("repeat")?.ToString() ?? "none";
+            DebugOutput = Node.Properties.GetValueOrDefault("output")?.ToString() ?? "msg";
+            DebugTarget = Node.Properties.GetValueOrDefault("target")?.ToString() ?? "debug";
+            FunctionCode = Node.Properties.GetValueOrDefault("func")?.ToString() ?? "return msg;";
+        }
+    }
+}

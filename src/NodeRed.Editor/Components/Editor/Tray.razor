@@ -1,0 +1,78 @@
+@* ============================================================
+   SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/tray.js
+   ============================================================
+   Tray component for node editing panels.
+   ============================================================ *@
+
+@using NodeRed.Editor.Services
+@inject EditorState State
+
+<div class="red-ui-tray @(TrayConfig?.Open == true ? "open" : "")">
+    <div class="red-ui-tray-header">
+        <div class="red-ui-tray-titlebar">
+            <ul class="red-ui-tray-toolbar">
+                <li>
+                    <button class="red-ui-tray-close" @onclick="Close">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </li>
+            </ul>
+            <div class="red-ui-tray-title">
+                <span>@TrayConfig?.Title</span>
+            </div>
+        </div>
+    </div>
+    <div class="red-ui-tray-body">
+        <div class="red-ui-tray-content">
+            @if (TrayConfig?.Node is not null)
+            {
+                <NodeEditor Node="TrayConfig.Node" />
+            }
+        </div>
+    </div>
+    <div class="red-ui-tray-footer">
+        <span class="red-ui-tray-footer-left">
+            @if (TrayConfig?.ShowDelete == true)
+            {
+                <button class="red-ui-button red-ui-button-danger" @onclick="Delete">
+                    Delete
+                </button>
+            }
+        </span>
+        <span class="red-ui-tray-footer-right">
+            <button class="red-ui-button" @onclick="Close">
+                Cancel
+            </button>
+            <button class="red-ui-button red-ui-button-primary" @onclick="Done">
+                Done
+            </button>
+        </span>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public TrayConfig? TrayConfig { get; set; }
+
+    private void Close()
+    {
+        State.CloseTray();
+        StateHasChanged();
+    }
+
+    private void Done()
+    {
+        TrayConfig?.OnSave?.Invoke();
+        State.CloseTray();
+        State.MarkDirty();
+        StateHasChanged();
+    }
+
+    private void Delete()
+    {
+        TrayConfig?.OnDelete?.Invoke();
+        State.CloseTray();
+        State.MarkDirty();
+        StateHasChanged();
+    }
+}

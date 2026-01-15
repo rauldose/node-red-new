@@ -1,0 +1,44 @@
+@* Sidebar Config Tab *@
+@using NodeRed.Editor.Services
+@inject EditorState State
+
+<div class="red-ui-sidebar-config">
+    <div class="red-ui-sidebar-header">
+        <span>Configuration nodes</span>
+    </div>
+    <div class="red-ui-config-content">
+        @if (State.ConfigNodes.Count == 0)
+        {
+            <div class="red-ui-config-empty">
+                <p>No configuration nodes</p>
+            </div>
+        }
+        else
+        {
+            @foreach (var configGroup in State.ConfigNodes.GroupBy(n => n.Type))
+            {
+                <div class="red-ui-config-category">
+                    <div class="red-ui-config-header">
+                        <span>@configGroup.Key</span>
+                        <span class="red-ui-config-count">@configGroup.Count()</span>
+                    </div>
+                    @foreach (var node in configGroup)
+                    {
+                        <div class="red-ui-config-node" @ondblclick="() => EditConfigNode(node)">
+                            <span class="red-ui-config-node-label">@(node.Name ?? node.Id)</span>
+                            <span class="red-ui-config-node-users">@node.Users users</span>
+                        </div>
+                    }
+                </div>
+            }
+        }
+    </div>
+</div>
+
+@code {
+    private void EditConfigNode(ConfigNode node)
+    {
+        State.OpenConfigNodeEditor(node);
+        StateHasChanged();
+    }
+}

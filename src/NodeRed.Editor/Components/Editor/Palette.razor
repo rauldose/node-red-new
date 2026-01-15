@@ -1,0 +1,85 @@
+@* ============================================================
+   SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/palette.js
+   ============================================================
+   Node palette component showing available node types.
+   ============================================================ *@
+
+@using NodeRed.Editor.Services
+@inject EditorState State
+
+<div class="red-ui-palette-container">
+    <div id="red-ui-palette-search" class="red-ui-palette-search">
+        <input type="text" @bind="SearchText" @bind:event="oninput" 
+               placeholder="Filter nodes" class="red-ui-palette-search-input" />
+    </div>
+    
+    <div class="red-ui-palette-scroll">
+        @foreach (var category in GetFilteredCategories())
+        {
+            <div class="red-ui-palette-category">
+                <div class="red-ui-palette-header" @onclick="() => ToggleCategory(category.Name)">
+                    <i class="fa @(category.Collapsed ? "fa-angle-right" : "fa-angle-down")"></i>
+                    <span>@category.Name</span>
+                </div>
+                
+                @if (!category.Collapsed)
+                {
+                    <div class="red-ui-palette-content">
+                        @foreach (var node in category.Nodes)
+                        {
+                            <div class="red-ui-palette-node" 
+                                 draggable="true"
+                                 style="background-color: @node.Color"
+                                 @ondragstart="() => OnNodeDragStart(node)">
+                                <div class="red-ui-palette-label">@node.Type</div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private string SearchText { get; set; } = "";
+
+    private List<PaletteCategory> GetFilteredCategories()
+    {
+        var categories = State.PaletteCategories;
+        
+        if (string.IsNullOrWhiteSpace(SearchText))
+        {
+            return categories;
+        }
+
+        var search = SearchText.ToLowerInvariant();
+        return categories
+            .Select(c => new PaletteCategory
+            {
+                Name = c.Name,
+                Collapsed = c.Collapsed,
+                Nodes = c.Nodes.Where(n => 
+                    n.Type.ToLowerInvariant().Contains(search) ||
+                    (n.Label?.ToLowerInvariant().Contains(search) ?? false)
+                ).ToList()
+            })
+            .Where(c => c.Nodes.Count > 0)
+            .ToList();
+    }
+
+    private void ToggleCategory(string name)
+    {
+        var category = State.PaletteCategories.FirstOrDefault(c => c.Name == name);
+        if (category is not null)
+        {
+            category.Collapsed = !category.Collapsed;
+            StateHasChanged();
+        }
+    }
+
+    private void OnNodeDragStart(PaletteNode node)
+    {
+        State.DraggedNode = node;
+    }
+}
