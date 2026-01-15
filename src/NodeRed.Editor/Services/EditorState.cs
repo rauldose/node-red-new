@@ -62,6 +62,16 @@ public class EditorState
     public bool SnapGrid { get; set; } = false;
     public bool ShowGrid { get; set; } = true;
     public double LineCurveScale { get; set; } = 0.75;
+    
+    // ============================================================
+    // SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/view.js
+    // LINES: 37-38
+    // ============================================================
+    // node_width = 100,
+    // node_height = 30,
+    // ============================================================
+    public int DefaultNodeWidth { get; set; } = 100;
+    public int DefaultNodeHeight { get; set; } = 30;
     public Point ScrollPosition { get; set; } = new(0, 0);
     public Point DropPosition { get; set; } = new(0, 0);
     public bool IsSelecting { get; set; }
@@ -573,7 +583,14 @@ public class FlowNode
     public string FlowId { get; set; } = "";
     public int X { get; set; }
     public int Y { get; set; }
-    public int Width { get; set; } = 120;
+    // ============================================================
+    // SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/view.js
+    // LINES: 37-38
+    // ============================================================
+    // Default node dimensions: width=100, height=30
+    // Width is calculated dynamically based on label length
+    // ============================================================
+    public int Width { get; set; } = 100;
     public int Height { get; set; } = 30;
     public string Color { get; set; } = "#ddd";
     public int Inputs { get; set; } = 1;

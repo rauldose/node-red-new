@@ -135,36 +135,52 @@
                        @oncontextmenu="(e) => ShowNodeContextMenu(node, e)"
                        @oncontextmenu:preventDefault="true">
                         
-                        @* Node body *@
-                        <rect class="red-ui-workspace-node-body"
+                        @* ============================================================
+                           SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/view.js
+                           LINES: 4768-4788
+                           ============================================================
+                           Node body: rect with rx=5, ry=5, fill from node color
+                           ============================================================ *@
+                        <rect class="red-ui-flow-node"
                               width="@node.Width" 
                               height="@node.Height"
                               rx="5" ry="5"
-                              fill="@node.Color"
-                              stroke="@(node.Selected ? "#ff7f0e" : "#999")"
-                              stroke-width="@(node.Selected ? 2 : 1)" />
+                              fill="@node.Color" />
                         
-                        @* Left stripe for node type *@
-                        <rect class="red-ui-workspace-node-stripe"
-                              x="0" y="0"
-                              width="7" height="@node.Height"
-                              rx="5" ry="5"
-                              fill="@EditorUtils.DarkenColor(node.Color, 0.2)" />
-                        
-                        @* Node icon *@
-                        <g transform="translate(10, @(node.Height / 2 - 7))">
-                            <text class="red-ui-workspace-node-icon" font-size="14">
-                                @EditorUtils.GetNodeIcon(node.Type)
-                            </text>
+                        @* ============================================================
+                           SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/view.js
+                           LINES: 4792-4818
+                           ============================================================
+                           Icon shade: 30px wide area with semi-transparent background
+                           and vertical border line
+                           ============================================================ *@
+                        <g class="red-ui-flow-node-icon-group">
+                            @* Icon background shade *@
+                            <path class="red-ui-flow-node-icon-shade" 
+                                  d="M 0 4.5 Q 0 0 4.5 0 L 26 0 L 26 @node.Height L 4.5 @node.Height Q 0 @node.Height 0 @(node.Height - 4.5) Z" />
+                            @* Icon shade border (vertical line at 30px) *@
+                            <path class="red-ui-flow-node-icon-shade-border" 
+                                  d="M 30 1 l 0 @(node.Height - 2)" />
+                            @* Node icon *@
+                            <g transform="translate(8, @(node.Height / 2 - 8))">
+                                <text class="red-ui-flow-node-icon-fa fa-lg" 
+                                      font-family="FontAwesome"
+                                      font-size="16"
+                                      fill="#fff">@EditorUtils.GetNodeIcon(node.Type)</text>
+                            </g>
                         </g>
                         
-                        @* Node label *@
-                        <text class="red-ui-workspace-node-label"
-                              x="@(node.Width / 2 + 5)" 
-                              y="@(node.Height / 2 + 4)"
-                              text-anchor="middle">
-                            @(node.Name ?? node.Label)
-                        </text>
+                        @* ============================================================
+                           SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/view.js
+                           LINES: 4819-4825
+                           ============================================================
+                           Node label: positioned at x=38, centered vertically
+                           ============================================================ *@
+                        <g class="red-ui-flow-node-label" transform="translate(38, @(node.Height / 2 + 4))">
+                            <text class="red-ui-flow-node-label-text">
+                                @(node.Name ?? node.Label)
+                            </text>
+                        </g>
                         
                         @* Input ports *@
                         @if (node.Inputs > 0)
@@ -176,11 +192,11 @@
                                     : (node.Height / (node.Inputs + 1)) * (i + 1) - 5;
                                 var portIndex = i;
                                 
-                                <rect class="red-ui-workspace-port-input"
+                                <rect class="red-ui-flow-port"
                                       data-port-index="@portIndex"
                                       x="-5" y="@portY"
                                       width="10" height="10"
-                                      rx="2" ry="2"
+                                      rx="3" ry="3"
                                       @onmouseup="(e) => EndWireDraw(node, portIndex, e)"
                                       @onmouseup:stopPropagation="true" />
                             }
@@ -194,22 +210,28 @@
                                 : (node.Height / (node.Outputs + 1)) * (i + 1) - 5;
                             var portIndex = i;
                             
-                            <rect class="red-ui-workspace-port-output"
+                            <rect class="red-ui-flow-port"
                                   data-port-index="@portIndex"
                                   x="@(node.Width - 5)" y="@portY"
                                   width="10" height="10"
-                                  rx="2" ry="2"
+                                  rx="3" ry="3"
                                   @onmousedown="(e) => StartWireDraw(node, portIndex, e)"
                                   @onmousedown:stopPropagation="true" />
                         }
                         
-                        @* Status indicator *@
+                        @* ============================================================
+                           SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/view.js
+                           LINES: 4827-4870
+                           ============================================================
+                           Status group: dot + label, positioned below node
+                           ============================================================ *@
                         @if (!string.IsNullOrEmpty(node.StatusText))
                         {
-                            <g transform="translate(0, @(node.Height + 5))">
-                                <circle r="5" cx="10" cy="5" 
-                                        fill="@(node.StatusFill ?? "#ccc")" />
-                                <text x="20" y="9" class="red-ui-workspace-node-status">
+                            <g class="red-ui-flow-node-status-group" transform="translate(0, @(node.Height + 3))">
+                                <rect class="red-ui-flow-node-status-background" x="3" y="-1" width="200" height="13" rx="2" ry="2" />
+                                <rect class="red-ui-flow-node-status red-ui-flow-node-status-dot-@(node.StatusFill ?? "grey")" 
+                                      x="6" y="1" width="9" height="9" rx="2" ry="2" />
+                                <text class="red-ui-flow-node-status-label" x="18" y="9">
                                     @node.StatusText
                                 </text>
                             </g>
