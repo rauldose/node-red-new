@@ -1272,9 +1272,75 @@ g.red-ui-flow-node-selected .red-ui-flow-node {
 }
 
 /* ============================================================
-   Font Awesome Icons (CDN)
+   Font Awesome Icons - Inline definitions
+   Note: For production, include Font Awesome via link tag in _Host.cshtml
    ============================================================ */
-@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css');
+.fa {
+    display: inline-block;
+    font-style: normal;
+    font-weight: normal;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Common icon placeholders using Unicode symbols */
+.fa-bars::before { content: "☰"; }
+.fa-info::before { content: "ℹ"; }
+.fa-info-circle::before { content: "ⓘ"; }
+.fa-bug::before { content: "🐛"; }
+.fa-cog::before { content: "⚙"; }
+.fa-cogs::before { content: "⚙"; }
+.fa-times::before { content: "✕"; }
+.fa-plus::before { content: "+"; }
+.fa-trash::before { content: "🗑"; }
+.fa-trash-o::before { content: "🗑"; }
+.fa-angle-down::before { content: "▼"; }
+.fa-angle-right::before { content: "▶"; }
+.fa-angle-left::before { content: "◀"; }
+.fa-angle-up::before { content: "▲"; }
+.fa-ban::before { content: "🚫"; }
+.fa-check::before { content: "✓"; }
+.fa-search::before { content: "🔍"; }
+.fa-save::before { content: "💾"; }
+.fa-upload::before { content: "⬆"; }
+.fa-download::before { content: "⬇"; }
+.fa-rocket::before { content: "🚀"; }
+.fa-play::before { content: "▶"; }
+.fa-pause::before { content: "⏸"; }
+.fa-stop::before { content: "⏹"; }
+.fa-lock::before { content: "🔒"; }
+.fa-unlock::before { content: "🔓"; }
+.fa-eye::before { content: "👁"; }
+.fa-eye-slash::before { content: "🙈"; }
+.fa-warning::before, .fa-exclamation-triangle::before { content: "⚠"; }
+.fa-question-circle::before { content: "❓"; }
+.fa-refresh::before { content: "↻"; }
+.fa-spinner::before { content: "◐"; }
+.fa-circle::before { content: "●"; }
+.fa-circle-o::before { content: "○"; }
+.fa-chevron-down::before { content: "⌄"; }
+.fa-chevron-up::before { content: "⌃"; }
+.fa-chevron-left::before { content: "‹"; }
+.fa-chevron-right::before { content: "›"; }
+.fa-caret-down::before { content: "▾"; }
+.fa-caret-up::before { content: "▴"; }
+.fa-caret-left::before { content: "◂"; }
+.fa-caret-right::before { content: "▸"; }
+.fa-list::before { content: "☰"; }
+.fa-user::before { content: "👤"; }
+.fa-sign-out::before { content: "⇥"; }
+.fa-external-link::before { content: "⎋"; }
+.fa-link::before { content: "🔗"; }
+
+/* Spinning animation for fa-spinner */
+.fa-spin {
+    animation: fa-spin 2s infinite linear;
+}
+
+@keyframes fa-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
 
 /* ============================================================
    Component Footer
