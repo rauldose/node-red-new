@@ -176,7 +176,7 @@ public class Subflow
 /// </summary>
 public class SubflowPort
 {
-    public string Id { get; set; } = "";
+    public string Id { get; set; } = NodeRed.Util.Util.GenerateId();
     public int X { get; set; }
     public int Y { get; set; }
     public List<SubflowWireRef> Wires { get; set; } = new();
@@ -287,8 +287,8 @@ public class SubflowManager
     /// </summary>
     public Subflow? GetSubflowFromInstanceType(string type)
     {
-        if (!type.StartsWith("subflow:")) return null;
-        var id = type.Substring(8);
+        if (!type.StartsWith("subflow:", StringComparison.Ordinal)) return null;
+        var id = type[8..];
         return GetSubflow(id);
     }
     

@@ -341,8 +341,8 @@ public class GroupManager
         var group = GetGroup(groupId);
         group?.Nodes.Remove(nodeId);
 
-        // Remove empty groups
-        if (group?.Nodes.Count == 0)
+        // Remove empty groups (only if no nodes AND no child groups)
+        if (group?.Nodes.Count == 0 && group?.ChildGroups.Count == 0)
         {
             _groups.Remove(group);
         }
