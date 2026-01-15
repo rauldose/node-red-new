@@ -195,7 +195,7 @@ window.nodeRedEditor = {
             } else if (self.state.connecting) {
                 // Check if over an input port
                 const targetPort = document.elementFromPoint(e.clientX, e.clientY);
-                if (targetPort?.classList.contains('red-ui-flow-port')) {
+                if (targetPort?.classList.contains('red-ui-flow-port-input')) {
                     const targetNode = targetPort.closest('.red-ui-workspace-node');
                     if (targetNode) {
                         const targetNodeId = targetNode.getAttribute('data-node-id') || '';

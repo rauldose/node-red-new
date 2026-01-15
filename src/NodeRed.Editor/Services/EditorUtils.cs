@@ -66,7 +66,7 @@ public static class EditorUtils
             "comment" => "\uf075",      // fa-comment
             "complete" or "catch" or "status" => "\uf013", // fa-cog
             "link in" or "link out" or "link call" => "\uf0c1", // fa-link
-            "websocket in" or "websocket out" => "\uf1e6", // fa-plug (use bolt as fallback)
+            "websocket in" or "websocket out" => "\uf1e6", // fa-plug
             "tcp in" or "tcp out" or "udp in" or "udp out" => "\uf0e0", // fa-envelope
             "split" or "join" => "\uf0db",  // fa-columns
             "sort" or "batch" => "\uf0dc",  // fa-sort
