@@ -35,9 +35,6 @@
     @* Canvas area *@
     <div @ref="_canvasRef" 
          class="red-ui-workspace-chart" 
-         @ondrop="OnDrop" 
-         @ondragover="OnDragOver"
-         @ondragover:preventDefault="true"
          tabindex="0">
         
         @* ============================================================
@@ -415,6 +412,8 @@
             {
                 await JS.InvokeVoidAsync("nodeRedEditor.initCanvas", _canvasRef, _dotNetRef);
                 await JS.InvokeVoidAsync("nodeRedEditor.initKeyboard", _dotNetRef);
+                await JS.InvokeVoidAsync("nodeRedEditor.initPaletteDragBySelector", 
+                    "#red-ui-palette", _canvasRef, _dotNetRef);
             }
             catch (JSException)
             {
@@ -540,6 +539,7 @@
             new() { Label = "Disable", Action = () => { } }
         };
         State.ContextMenuOpen = true;
+        State.NotifyStateChanged();
         StateHasChanged();
     }
 
@@ -805,41 +805,45 @@
     }
 
     [JSInvokable]
-    public void OnNodeDoubleClick(string nodeId)
+    public async Task OnNodeDoubleClick(string nodeId)
     {
         var node = State.Nodes.FirstOrDefault(n => n.Id == nodeId);
         if (node != null)
         {
-            EditNode(node);
+            await InvokeAsync(() => EditNode(node));
         }
     }
 
     [JSInvokable]
-    public void OnContextMenu(string nodeId, double x, double y)
+    public async Task OnContextMenu(string nodeId, double x, double y)
     {
-        if (!string.IsNullOrEmpty(nodeId))
+        await InvokeAsync(() =>
         {
-            var node = State.Nodes.FirstOrDefault(n => n.Id == nodeId);
-            if (node != null)
+            if (!string.IsNullOrEmpty(nodeId))
             {
-                ShowNodeContextMenu(node, new MouseEventArgs { ClientX = x, ClientY = y });
+                var node = State.Nodes.FirstOrDefault(n => n.Id == nodeId);
+                if (node != null)
+                {
+                    ShowNodeContextMenu(node, new MouseEventArgs { ClientX = x, ClientY = y });
+                }
             }
-        }
-        else
-        {
-            // Canvas context menu
-            State.ContextMenuPosition = new Point((int)x, (int)y);
-            State.ContextMenuItems = new List<ContextMenuItem>
+            else
             {
-                new() { Label = "Paste", Icon = "clipboard", Shortcut = "Ctrl+V", Action = () => PasteClipboard(), Disabled = State.ClipboardNodes.Count == 0 },
-                new() { IsSeparator = true },
-                new() { Label = "Add subflow", Icon = "plus" },
-                new() { Label = "Import", Icon = "download", Shortcut = "Ctrl+I" },
-                new() { Label = "Export", Icon = "upload", Shortcut = "Ctrl+E" }
-            };
-            State.ContextMenuOpen = true;
-            StateHasChanged();
-        }
+                // Canvas context menu
+                State.ContextMenuPosition = new Point((int)x, (int)y);
+                State.ContextMenuItems = new List<ContextMenuItem>
+                {
+                    new() { Label = "Paste", Icon = "clipboard", Shortcut = "Ctrl+V", Action = () => PasteClipboard(), Disabled = State.ClipboardNodes.Count == 0 },
+                    new() { IsSeparator = true },
+                    new() { Label = "Add subflow", Icon = "plus" },
+                    new() { Label = "Import", Icon = "download", Shortcut = "Ctrl+I" },
+                    new() { Label = "Export", Icon = "upload", Shortcut = "Ctrl+E" }
+                };
+                State.ContextMenuOpen = true;
+                State.NotifyStateChanged();
+                StateHasChanged();
+            }
+        });
     }
 
     [JSInvokable]
@@ -862,6 +866,13 @@
         State.Nodes.Add(newNode);
         State.MarkDirty();
         StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void OnPaletteDragStart(string nodeType)
+    {
+        // Optional: Track that a palette drag has started
+        // This is informational - the actual node creation happens on drop
     }
 
     // ============================================================

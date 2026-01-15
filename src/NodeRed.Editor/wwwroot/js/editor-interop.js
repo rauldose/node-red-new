@@ -257,16 +257,22 @@ window.nodeRedEditor = {
             const y = e.clientY - rect.top;
             
             const targetNode = e.target.closest('.red-ui-workspace-node');
+            console.log('Context menu, node:', targetNode?.dataset.nodeId || 'canvas');
             dotNetRef.invokeMethodAsync('OnContextMenu', 
-                targetNode?.dataset.nodeId || '', x, y);
+                targetNode?.dataset.nodeId || '', x, y)
+                .then(() => console.log('OnContextMenu succeeded'))
+                .catch(err => console.error('OnContextMenu failed:', err));
         });
 
         // Double-click handling
         canvasElement.addEventListener('dblclick', function(e) {
             const targetNode = e.target.closest('.red-ui-workspace-node');
             if (targetNode) {
+                console.log('Double-click on node:', targetNode.dataset.nodeId);
                 dotNetRef.invokeMethodAsync('OnNodeDoubleClick', 
-                    targetNode.dataset.nodeId || '');
+                    targetNode.dataset.nodeId || '')
+                    .then(() => console.log('OnNodeDoubleClick succeeded'))
+                    .catch(err => console.error('OnNodeDoubleClick failed:', err));
             }
         });
     },
@@ -478,6 +484,12 @@ window.nodeRedEditor = {
                     snappedY);
             });
         }
+    },
+
+    // Convenience function that takes a selector
+    initPaletteDragBySelector: function(paletteSelector, canvasElement, dotNetRef) {
+        const paletteElement = document.querySelector(paletteSelector);
+        this.initPaletteDrag(paletteElement, canvasElement, dotNetRef);
     },
 
     // ============================================================

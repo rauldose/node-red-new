@@ -21,6 +21,7 @@
 @using NodeRed.Editor.Components.Editor.Dialogs
 @inject EditorState State
 @inject IJSRuntime JS
+@implements IDisposable
 
 <div id="red-ui-editor" class="red-ui-editor" @onkeydown="OnKeyDown" tabindex="0">
     <div id="red-ui-header">
@@ -143,6 +144,24 @@
     private bool _exportOpen;
     private bool _searchOpen;
     private bool _shortcutsOpen;
+
+    protected override void OnInitialized()
+    {
+        // Subscribe to state changes from other components
+        State.OnStateChanged += HandleStateChanged;
+    }
+
+    private void HandleStateChanged()
+    {
+        // Re-render when state changes (e.g., tray opened from Workspace)
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        // Unsubscribe to prevent memory leaks
+        State.OnStateChanged -= HandleStateChanged;
+    }
 
     // ============================================================
     // ORIGINAL CODE (red.js lines 931-956):

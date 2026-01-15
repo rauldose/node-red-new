@@ -23,6 +23,15 @@ public class EditorState
         InitializeDefaultPalette();
     }
 
+    // Event for notifying UI components of state changes
+    public event Action? OnStateChanged;
+
+    /// <summary>
+    /// Notify all subscribers that the state has changed.
+    /// Call this after modifying state that affects other components.
+    /// </summary>
+    public void NotifyStateChanged() => OnStateChanged?.Invoke();
+
     // Loading state
     public bool IsLoading { get; set; }
     public string LoadingMessage { get; set; } = "";
@@ -260,12 +269,14 @@ public class EditorState
             }
         };
         ShowShade = true;
+        NotifyStateChanged();
     }
 
     public void OpenConfigNodeEditor(ConfigNode node)
     {
         // Similar to node editor but for config nodes
         ShowShade = true;
+        NotifyStateChanged();
     }
 
     public void CloseTray()
