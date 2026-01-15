@@ -63,37 +63,34 @@
              style="cursor: crosshair; touch-action: none;">
             
             @* ============================================================
+               Grid Pattern (optimized for performance)
                SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/view.js
                LINES: 989-1016 (updateGrid function)
                ============================================================
-               Node-RED uses SVG lines for grid, spaced at gridSize (20px)
-               Horizontal and vertical lines across the full canvas
+               Using SVG pattern for grid instead of individual lines
+               for better performance with large canvas (8000x8000)
                ============================================================ *@
+            <defs>
+                <pattern id="red-ui-grid-pattern" 
+                         width="@State.GridSize" height="@State.GridSize" 
+                         patternUnits="userSpaceOnUse">
+                    <line class="red-ui-workspace-chart-grid-h" x1="0" y1="0" x2="@State.GridSize" y2="0" />
+                    <line class="red-ui-workspace-chart-grid-v" x1="0" y1="0" x2="0" y2="@State.GridSize" />
+                </pattern>
+            </defs>
             
             @* Background rect *@
             <rect class="red-ui-workspace-chart-background" 
                   width="@State.CanvasWidth" 
                   height="@State.CanvasHeight" />
             
-            @* Grid lines *@
+            @* Grid overlay using pattern (only when grid is visible) *@
             @if (State.ShowGrid)
             {
-                <g class="red-ui-workspace-chart-grid">
-                    @* Horizontal lines *@
-                    @for (int i = 0; i < State.CanvasHeight; i += State.GridSize)
-                    {
-                        <line class="red-ui-workspace-chart-grid-h"
-                              x1="0" x2="@State.CanvasWidth"
-                              y1="@i" y2="@i" />
-                    }
-                    @* Vertical lines *@
-                    @for (int i = 0; i < State.CanvasWidth; i += State.GridSize)
-                    {
-                        <line class="red-ui-workspace-chart-grid-v"
-                              x1="@i" x2="@i"
-                              y1="0" y2="@State.CanvasHeight" />
-                    }
-                </g>
+                <rect class="red-ui-workspace-chart-grid-pattern"
+                      width="@State.CanvasWidth" 
+                      height="@State.CanvasHeight"
+                      fill="url(#red-ui-grid-pattern)" />
             }
             
             @* Wires/Links *@
@@ -267,8 +264,6 @@
     private ElementReference _canvasRef;
     private DotNetObjectReference<Workspace>? _dotNetRef;
     private bool _initialized = false;
-
-    private string ViewBox => $"0 0 {State.CanvasWidth} {State.CanvasHeight}";
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
