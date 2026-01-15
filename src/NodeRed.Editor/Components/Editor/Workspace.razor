@@ -38,11 +38,6 @@
          @ondrop="OnDrop" 
          @ondragover="OnDragOver"
          @ondragover:preventDefault="true"
-         @onclick="OnCanvasClick"
-         @onmousemove="OnMouseMove"
-         @onmousedown="OnMouseDown"
-         @onmouseup="OnMouseUp"
-         @onkeydown="OnKeyDown"
          tabindex="0">
         
         @* ============================================================
@@ -261,16 +256,10 @@
             <g class="red-ui-workspace-chart-nodes">
                 @foreach (var node in GetActiveFlowNodes())
                 {
-                    var isSubflowInstance = node.Type.StartsWith("subflow:");
+                    var isSubflowInstance = node.Type.StartsWith("subflow:", StringComparison.Ordinal);
                     <g class="red-ui-workspace-node @(node.Selected ? "selected" : "") @(isSubflowInstance ? "red-ui-flow-subflow-instance" : "")"
                        data-node-id="@node.Id"
-                       transform="translate(@node.X, @node.Y)"
-                       @onclick="(e) => SelectNode(node, e)"
-                       @onclick:stopPropagation="true"
-                       @ondblclick="() => EditNode(node)"
-                       @onmousedown="(e) => StartNodeDrag(node, e)"
-                       @oncontextmenu="(e) => ShowNodeContextMenu(node, e)"
-                       @oncontextmenu:preventDefault="true">
+                       transform="translate(@node.X, @node.Y)">
                         
                         @* ============================================================
                            SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/view.js
@@ -345,13 +334,11 @@
                                     : (node.Height / (node.Inputs + 1)) * (i + 1) - 5;
                                 var portIndex = i;
                                 
-                                <rect class="red-ui-flow-port"
+                                <rect class="red-ui-flow-port red-ui-flow-port-input"
                                       data-port-index="@portIndex"
                                       x="-5" y="@portY"
                                       width="10" height="10"
-                                      rx="3" ry="3"
-                                      @onmouseup="(e) => EndWireDraw(node, portIndex, e)"
-                                      @onmouseup:stopPropagation="true" />
+                                      rx="3" ry="3" />
                             }
                         }
                         
@@ -363,13 +350,11 @@
                                 : (node.Height / (node.Outputs + 1)) * (i + 1) - 5;
                             var portIndex = i;
                             
-                            <rect class="red-ui-flow-port"
+                            <rect class="red-ui-flow-port red-ui-flow-port-output"
                                   data-port-index="@portIndex"
                                   x="@(node.Width - 5)" y="@portY"
                                   width="10" height="10"
-                                  rx="3" ry="3"
-                                  @onmousedown="(e) => StartWireDraw(node, portIndex, e)"
-                                  @onmousedown:stopPropagation="true" />
+                                  rx="3" ry="3" />
                         }
                         
                         @* ============================================================
@@ -489,17 +474,6 @@
         StateHasChanged();
     }
 
-    private void SelectNode(FlowNode node, MouseEventArgs e)
-    {
-        if (!e.ShiftKey && !e.CtrlKey)
-        {
-            foreach (var n in State.Nodes) n.Selected = false;
-            foreach (var w in State.Wires) w.Selected = false;
-        }
-        node.Selected = !node.Selected;
-        StateHasChanged();
-    }
-
     private void SelectWire(FlowWire wire)
     {
         if (!State.IsMultiSelect)
@@ -515,17 +489,6 @@
     {
         State.OpenNodeEditor(node);
         StateHasChanged();
-    }
-
-    private void OnCanvasClick()
-    {
-        if (!State.IsMultiSelect && !State.IsDrawingWire && !State.IsDraggingNode)
-        {
-            foreach (var n in State.Nodes) n.Selected = false;
-            foreach (var w in State.Wires) w.Selected = false;
-            State.ContextMenuOpen = false;
-            StateHasChanged();
-        }
     }
 
     private void OnDragOver()
@@ -560,167 +523,6 @@
             State.MarkDirty();
             StateHasChanged();
         }
-    }
-
-    private void OnMouseMove(MouseEventArgs e)
-    {
-        State.DropPosition = new Point((int)e.OffsetX, (int)e.OffsetY);
-
-        if (State.IsDraggingNode && !string.IsNullOrEmpty(State.DraggingNodeId))
-        {
-            var node = State.Nodes.FirstOrDefault(n => n.Id == State.DraggingNodeId);
-            if (node != null)
-            {
-                // Snap to grid
-                node.X = ((int)e.OffsetX - State.DragOffset.X) / 20 * 20;
-                node.Y = ((int)e.OffsetY - State.DragOffset.Y) / 20 * 20;
-                
-                // Update connected wires
-                UpdateWirePaths();
-                StateHasChanged();
-            }
-        }
-        else if (State.IsDrawingWire)
-        {
-            State.WireDrawEnd = new Point((int)e.OffsetX, (int)e.OffsetY);
-            StateHasChanged();
-        }
-        else if (State.IsSelecting)
-        {
-            State.SelectionEnd = new Point((int)e.OffsetX, (int)e.OffsetY);
-            StateHasChanged();
-        }
-    }
-
-    private void OnMouseDown(MouseEventArgs e)
-    {
-        if (e.Button == 0 && !State.IsDrawingWire && !State.IsDraggingNode)
-        {
-            // Start lasso selection
-            State.IsSelecting = true;
-            State.SelectionStart = new Point((int)e.OffsetX, (int)e.OffsetY);
-            State.SelectionEnd = State.SelectionStart;
-        }
-    }
-
-    private void OnMouseUp(MouseEventArgs e)
-    {
-        if (State.IsDraggingNode)
-        {
-            State.IsDraggingNode = false;
-            State.DraggingNodeId = null;
-            State.MarkDirty();
-        }
-
-        if (State.IsDrawingWire)
-        {
-            // Wire wasn't connected - cancel
-            State.IsDrawingWire = false;
-            State.WireSourceNodeId = null;
-        }
-
-        if (State.IsSelecting)
-        {
-            // Select nodes in lasso
-            var minX = Math.Min(State.SelectionStart.X, State.SelectionEnd.X);
-            var minY = Math.Min(State.SelectionStart.Y, State.SelectionEnd.Y);
-            var maxX = Math.Max(State.SelectionStart.X, State.SelectionEnd.X);
-            var maxY = Math.Max(State.SelectionStart.Y, State.SelectionEnd.Y);
-
-            foreach (var node in GetActiveFlowNodes())
-            {
-                if (node.X >= minX && node.X + node.Width <= maxX &&
-                    node.Y >= minY && node.Y + node.Height <= maxY)
-                {
-                    node.Selected = true;
-                }
-            }
-
-            State.IsSelecting = false;
-            StateHasChanged();
-        }
-    }
-
-    private void OnKeyDown(KeyboardEventArgs e)
-    {
-        if (e.Key == "Delete" || e.Key == "Backspace")
-        {
-            DeleteSelected();
-        }
-        else if (e.CtrlKey && e.Key == "a")
-        {
-            SelectAll();
-        }
-        else if (e.CtrlKey && e.Key == "c")
-        {
-            CopySelected();
-        }
-        else if (e.CtrlKey && e.Key == "v")
-        {
-            PasteClipboard();
-        }
-    }
-
-    private void StartNodeDrag(FlowNode node, MouseEventArgs e)
-    {
-        if (e.Button == 0)
-        {
-            State.IsDraggingNode = true;
-            State.DraggingNodeId = node.Id;
-            State.DragOffset = new Point((int)e.OffsetX - node.X, (int)e.OffsetY - node.Y);
-        }
-    }
-
-    private void StartWireDraw(FlowNode node, int portIndex, MouseEventArgs e)
-    {
-        State.IsDrawingWire = true;
-        State.WireSourceNodeId = node.Id;
-        State.WireSourcePort = portIndex;
-        
-        // Calculate start position
-        var sourceY = node.Outputs == 1 
-            ? node.Y + node.Height / 2 
-            : node.Y + (node.Height / (node.Outputs + 1)) * (portIndex + 1);
-        var sourceX = node.X + node.Width;
-        
-        State.WireDrawEnd = new Point(sourceX, sourceY);
-        StateHasChanged();
-    }
-
-    private void EndWireDraw(FlowNode targetNode, int targetPortIndex, MouseEventArgs e)
-    {
-        if (State.IsDrawingWire && !string.IsNullOrEmpty(State.WireSourceNodeId))
-        {
-            var sourceNode = State.Nodes.FirstOrDefault(n => n.Id == State.WireSourceNodeId);
-            if (sourceNode != null && sourceNode.Id != targetNode.Id)
-            {
-                // Check if wire already exists
-                var existingWire = State.Wires.FirstOrDefault(w =>
-                    w.SourceId == State.WireSourceNodeId &&
-                    w.SourcePort == State.WireSourcePort &&
-                    w.TargetId == targetNode.Id &&
-                    w.TargetPort == targetPortIndex);
-
-                if (existingWire == null)
-                {
-                    var newWire = new FlowWire
-                    {
-                        SourceId = State.WireSourceNodeId,
-                        SourcePort = State.WireSourcePort,
-                        TargetId = targetNode.Id,
-                        TargetPort = targetPortIndex,
-                        FlowId = State.ActiveFlowId
-                    };
-                    newWire.Path = CalculateWirePath(newWire);
-                    State.Wires.Add(newWire);
-                    State.MarkDirty();
-                }
-            }
-        }
-
-        State.IsDrawingWire = false;
-        State.WireSourceNodeId = null;
-        StateHasChanged();
     }
 
     private void ShowNodeContextMenu(FlowNode node, MouseEventArgs e)
@@ -1059,6 +861,178 @@
         };
         State.Nodes.Add(newNode);
         State.MarkDirty();
+        StateHasChanged();
+    }
+
+    // ============================================================
+    // New JSInvokable methods for improved mouse interactions
+    // ============================================================
+
+    [JSInvokable]
+    public void OnNodeClick(string nodeId, bool shiftKey, bool ctrlKey)
+    {
+        var node = State.Nodes.FirstOrDefault(n => n.Id == nodeId);
+        if (node != null)
+        {
+            if (!shiftKey && !ctrlKey)
+            {
+                foreach (var n in State.Nodes) n.Selected = false;
+                foreach (var w in State.Wires) w.Selected = false;
+            }
+            node.Selected = !node.Selected || (!shiftKey && !ctrlKey);
+            StateHasChanged();
+        }
+    }
+
+    [JSInvokable]
+    public void OnNodeDragStart(string nodeId, double startX, double startY)
+    {
+        State.IsDraggingNode = true;
+        State.DraggingNodeId = nodeId;
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void OnNodeDrag(string nodeId, double newX, double newY)
+    {
+        var node = State.Nodes.FirstOrDefault(n => n.Id == nodeId);
+        if (node != null)
+        {
+            node.X = (int)newX;
+            node.Y = (int)newY;
+            UpdateWirePaths();
+            StateHasChanged();
+        }
+    }
+
+    [JSInvokable]
+    public void OnNodeDragEnd(string nodeId, double x, double y)
+    {
+        State.IsDraggingNode = false;
+        State.DraggingNodeId = null;
+        State.MarkDirty();
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void OnWireDrawStart(string nodeId, int portIndex, double x, double y)
+    {
+        State.IsDrawingWire = true;
+        State.WireSourceNodeId = nodeId;
+        State.WireSourcePort = portIndex;
+        
+        var sourceNode = State.Nodes.FirstOrDefault(n => n.Id == nodeId);
+        if (sourceNode != null)
+        {
+            var sourceY = sourceNode.Outputs == 1 
+                ? sourceNode.Y + sourceNode.Height / 2 
+                : sourceNode.Y + (sourceNode.Height / (sourceNode.Outputs + 1)) * (portIndex + 1);
+            var sourceX = sourceNode.X + sourceNode.Width;
+            State.WireDrawEnd = new Point(sourceX, sourceY);
+        }
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void OnWireDraw(double x, double y)
+    {
+        State.WireDrawEnd = new Point((int)x, (int)y);
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void OnWireDrawEnd(string targetNodeId, int targetPortIndex, bool connected)
+    {
+        if (connected && !string.IsNullOrEmpty(State.WireSourceNodeId) && !string.IsNullOrEmpty(targetNodeId))
+        {
+            var sourceNode = State.Nodes.FirstOrDefault(n => n.Id == State.WireSourceNodeId);
+            var targetNode = State.Nodes.FirstOrDefault(n => n.Id == targetNodeId);
+            
+            if (sourceNode != null && targetNode != null && sourceNode.Id != targetNode.Id)
+            {
+                // Check if wire already exists
+                var existingWire = State.Wires.FirstOrDefault(w =>
+                    w.SourceId == State.WireSourceNodeId &&
+                    w.SourcePort == State.WireSourcePort &&
+                    w.TargetId == targetNodeId &&
+                    w.TargetPort == targetPortIndex);
+
+                if (existingWire == null)
+                {
+                    var newWire = new FlowWire
+                    {
+                        SourceId = State.WireSourceNodeId,
+                        SourcePort = State.WireSourcePort,
+                        TargetId = targetNodeId,
+                        TargetPort = targetPortIndex,
+                        FlowId = State.ActiveFlowId
+                    };
+                    newWire.Path = CalculateWirePath(newWire);
+                    State.Wires.Add(newWire);
+                    State.MarkDirty();
+                }
+            }
+        }
+
+        State.IsDrawingWire = false;
+        State.WireSourceNodeId = null;
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void OnLassoStart(double x, double y)
+    {
+        State.IsSelecting = true;
+        State.SelectionStart = new Point((int)x, (int)y);
+        State.SelectionEnd = State.SelectionStart;
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void OnLassoDraw(double startX, double startY, double endX, double endY)
+    {
+        State.SelectionEnd = new Point((int)endX, (int)endY);
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void OnLassoEnd(double startX, double startY, double endX, double endY)
+    {
+        // Select nodes in lasso
+        var minX = Math.Min(startX, endX);
+        var minY = Math.Min(startY, endY);
+        var maxX = Math.Max(startX, endX);
+        var maxY = Math.Max(startY, endY);
+
+        foreach (var node in GetActiveFlowNodes())
+        {
+            if (node.X >= minX && node.X + node.Width <= maxX &&
+                node.Y >= minY && node.Y + node.Height <= maxY)
+            {
+                node.Selected = true;
+            }
+        }
+
+        State.IsSelecting = false;
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void OnCanvasPan(double dx, double dy)
+    {
+        State.ScrollPosition = new Point(
+            State.ScrollPosition.X + (int)dx,
+            State.ScrollPosition.Y + (int)dy);
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void OnCanvasClick()
+    {
+        // Deselect all
+        foreach (var n in State.Nodes) n.Selected = false;
+        foreach (var w in State.Wires) w.Selected = false;
+        State.ContextMenuOpen = false;
         StateHasChanged();
     }
 

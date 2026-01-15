@@ -18,8 +18,11 @@ window.nodeRedEditor = {
     state: {
         dragging: false,
         dragNode: null,
+        dragNodeId: null,
         dragStartX: 0,
         dragStartY: 0,
+        dragStartNodeX: 0,
+        dragStartNodeY: 0,
         connecting: false,
         connectionSource: null,
         connectionPort: null,
@@ -30,7 +33,12 @@ window.nodeRedEditor = {
         panStartY: 0,
         scale: 1.0,
         offsetX: 0,
-        offsetY: 0
+        offsetY: 0,
+        spacebarDown: false,
+        mouseDownTime: 0,
+        mouseDownPos: { x: 0, y: 0 },
+        dragThreshold: 5,  // pixels before drag starts
+        hasMoved: false
     },
 
     // Initialize canvas event listeners
@@ -38,45 +46,94 @@ window.nodeRedEditor = {
         if (!canvasElement) return;
         
         const self = this;
+        this.canvasElement = canvasElement;
+        this.dotNetRef = dotNetRef;
+        
+        // ============================================================
+        // SOURCE: view.js - Handle spacebar for pan mode
+        // ============================================================
+        document.addEventListener('keydown', function(e) {
+            if (e.code === 'Space' && !self.state.spacebarDown) {
+                self.state.spacebarDown = true;
+                canvasElement.style.cursor = 'grab';
+            }
+        });
+        
+        document.addEventListener('keyup', function(e) {
+            if (e.code === 'Space') {
+                self.state.spacebarDown = false;
+                if (!self.state.panning) {
+                    canvasElement.style.cursor = 'crosshair';
+                }
+            }
+        });
         
         // ============================================================
         // SOURCE: view.js lines 250-280 - mousedown handling
         // ============================================================
         canvasElement.addEventListener('mousedown', function(e) {
             const rect = canvasElement.getBoundingClientRect();
-            const x = (e.clientX - rect.left) / self.state.scale - self.state.offsetX;
-            const y = (e.clientY - rect.top) / self.state.scale - self.state.offsetY;
+            const x = (e.clientX - rect.left) / self.state.scale;
+            const y = (e.clientY - rect.top) / self.state.scale;
             
-            if (e.button === 0) { // Left click
-                if (e.target.classList.contains('red-ui-workspace-port-output')) {
-                    // Start wire drawing
-                    self.state.connecting = true;
-                    self.state.connectionSource = e.target.closest('.red-ui-workspace-node');
-                    self.state.connectionPort = e.target;
-                    dotNetRef.invokeMethodAsync('OnWireDrawStart', 
-                        self.state.connectionSource?.dataset.nodeId || '', 
-                        parseInt(e.target.dataset.portIndex || '0'),
-                        x, y);
-                } else if (e.target.closest('.red-ui-workspace-node')) {
-                    // Start node drag
-                    const nodeEl = e.target.closest('.red-ui-workspace-node');
-                    self.state.dragging = true;
-                    self.state.dragNode = nodeEl;
-                    self.state.dragStartX = x;
-                    self.state.dragStartY = y;
-                    dotNetRef.invokeMethodAsync('OnNodeDragStart', 
-                        nodeEl.dataset.nodeId || '', x, y);
-                } else {
-                    // Start lasso selection
-                    self.state.lasso = true;
-                    self.state.lassoStart = { x: x, y: y };
-                    dotNetRef.invokeMethodAsync('OnLassoStart', x, y);
-                }
-            } else if (e.button === 1) { // Middle click - pan
+            self.state.mouseDownTime = Date.now();
+            self.state.mouseDownPos = { x: e.clientX, y: e.clientY };
+            self.state.hasMoved = false;
+            
+            // Middle click OR spacebar + left click - pan mode
+            if (e.button === 1 || (e.button === 0 && self.state.spacebarDown)) {
+                e.preventDefault();
                 self.state.panning = true;
                 self.state.panStartX = e.clientX;
                 self.state.panStartY = e.clientY;
-                canvasElement.style.cursor = 'move';
+                canvasElement.style.cursor = 'grabbing';
+                return;
+            }
+            
+            if (e.button === 0) { // Left click
+                // Check if clicking on a port (output)
+                const portElement = e.target.closest('.red-ui-flow-port');
+                const nodeElement = e.target.closest('.red-ui-workspace-node');
+                
+                if (portElement && portElement.parentElement !== nodeElement) {
+                    // Clicked on an output port - check if it's on the right side
+                    const portRect = portElement.getBoundingClientRect();
+                    const nodeRect = nodeElement?.getBoundingClientRect();
+                    if (nodeRect && portRect.left > nodeRect.left + nodeRect.width / 2) {
+                        // Output port - start wire drawing
+                        self.state.connecting = true;
+                        self.state.connectionSource = nodeElement;
+                        self.state.connectionPort = portElement;
+                        const nodeId = nodeElement?.getAttribute('data-node-id') || '';
+                        const portIndex = parseInt(portElement.getAttribute('data-port-index') || '0');
+                        dotNetRef.invokeMethodAsync('OnWireDrawStart', nodeId, portIndex, x, y);
+                        return;
+                    }
+                }
+                
+                if (nodeElement) {
+                    // Clicked on a node - prepare for potential drag
+                    self.state.dragNode = nodeElement;
+                    self.state.dragNodeId = nodeElement.getAttribute('data-node-id') || '';
+                    self.state.dragStartX = e.clientX;
+                    self.state.dragStartY = e.clientY;
+                    
+                    // Get current node position from transform
+                    const transform = nodeElement.getAttribute('transform') || '';
+                    const match = transform.match(/translate\((\d+),\s*(\d+)\)/);
+                    if (match) {
+                        self.state.dragStartNodeX = parseInt(match[1]);
+                        self.state.dragStartNodeY = parseInt(match[2]);
+                    }
+                    
+                    // Don't start dragging yet - wait for threshold
+                    return;
+                }
+                
+                // Clicked on empty canvas - start lasso selection
+                self.state.lasso = true;
+                self.state.lassoStart = { x: x, y: y };
+                dotNetRef.invokeMethodAsync('OnLassoStart', x, y);
             }
         });
 
@@ -85,14 +142,27 @@ window.nodeRedEditor = {
         // ============================================================
         canvasElement.addEventListener('mousemove', function(e) {
             const rect = canvasElement.getBoundingClientRect();
-            const x = (e.clientX - rect.left) / self.state.scale - self.state.offsetX;
-            const y = (e.clientY - rect.top) / self.state.scale - self.state.offsetY;
+            const x = (e.clientX - rect.left) / self.state.scale;
+            const y = (e.clientY - rect.top) / self.state.scale;
+            
+            // Check if we've moved past the drag threshold
+            if (!self.state.hasMoved && self.state.dragNode) {
+                const dx = Math.abs(e.clientX - self.state.mouseDownPos.x);
+                const dy = Math.abs(e.clientY - self.state.mouseDownPos.y);
+                if (dx > self.state.dragThreshold || dy > self.state.dragThreshold) {
+                    self.state.hasMoved = true;
+                    self.state.dragging = true;
+                    dotNetRef.invokeMethodAsync('OnNodeDragStart', self.state.dragNodeId, 
+                        self.state.dragStartNodeX, self.state.dragStartNodeY);
+                }
+            }
             
             if (self.state.dragging && self.state.dragNode) {
-                const dx = x - self.state.dragStartX;
-                const dy = y - self.state.dragStartY;
-                dotNetRef.invokeMethodAsync('OnNodeDrag', 
-                    self.state.dragNode.dataset.nodeId || '', dx, dy);
+                const dx = (e.clientX - self.state.dragStartX) / self.state.scale;
+                const dy = (e.clientY - self.state.dragStartY) / self.state.scale;
+                const newX = Math.round((self.state.dragStartNodeX + dx) / 20) * 20;
+                const newY = Math.round((self.state.dragStartNodeY + dy) / 20) * 20;
+                dotNetRef.invokeMethodAsync('OnNodeDrag', self.state.dragNodeId, newX, newY);
             } else if (self.state.connecting) {
                 dotNetRef.invokeMethodAsync('OnWireDraw', x, y);
             } else if (self.state.lasso) {
@@ -101,12 +171,9 @@ window.nodeRedEditor = {
             } else if (self.state.panning) {
                 const dx = e.clientX - self.state.panStartX;
                 const dy = e.clientY - self.state.panStartY;
-                self.state.offsetX += dx / self.state.scale;
-                self.state.offsetY += dy / self.state.scale;
                 self.state.panStartX = e.clientX;
                 self.state.panStartY = e.clientY;
-                dotNetRef.invokeMethodAsync('OnCanvasPan', 
-                    self.state.offsetX, self.state.offsetY);
+                dotNetRef.invokeMethodAsync('OnCanvasPan', dx, dy);
             }
         });
 
@@ -115,23 +182,33 @@ window.nodeRedEditor = {
         // ============================================================
         canvasElement.addEventListener('mouseup', function(e) {
             const rect = canvasElement.getBoundingClientRect();
-            const x = (e.clientX - rect.left) / self.state.scale - self.state.offsetX;
-            const y = (e.clientY - rect.top) / self.state.scale - self.state.offsetY;
+            const x = (e.clientX - rect.left) / self.state.scale;
+            const y = (e.clientY - rect.top) / self.state.scale;
             
             if (self.state.dragging) {
-                dotNetRef.invokeMethodAsync('OnNodeDragEnd', 
-                    self.state.dragNode?.dataset.nodeId || '', x, y);
+                dotNetRef.invokeMethodAsync('OnNodeDragEnd', self.state.dragNodeId, x, y);
                 self.state.dragging = false;
                 self.state.dragNode = null;
+                self.state.dragNodeId = null;
+            } else if (self.state.dragNode && !self.state.hasMoved) {
+                // Click without drag - select the node
+                const shiftKey = e.shiftKey;
+                const ctrlKey = e.ctrlKey || e.metaKey;
+                dotNetRef.invokeMethodAsync('OnNodeClick', self.state.dragNodeId, shiftKey, ctrlKey);
+                self.state.dragNode = null;
+                self.state.dragNodeId = null;
             } else if (self.state.connecting) {
                 // Check if over an input port
                 const targetPort = document.elementFromPoint(e.clientX, e.clientY);
-                if (targetPort?.classList.contains('red-ui-workspace-port-input')) {
+                if (targetPort?.classList.contains('red-ui-flow-port')) {
                     const targetNode = targetPort.closest('.red-ui-workspace-node');
-                    dotNetRef.invokeMethodAsync('OnWireDrawEnd', 
-                        targetNode?.dataset.nodeId || '',
-                        parseInt(targetPort.dataset.portIndex || '0'),
-                        true);
+                    if (targetNode) {
+                        const targetNodeId = targetNode.getAttribute('data-node-id') || '';
+                        const targetPortIndex = parseInt(targetPort.getAttribute('data-port-index') || '0');
+                        dotNetRef.invokeMethodAsync('OnWireDrawEnd', targetNodeId, targetPortIndex, true);
+                    } else {
+                        dotNetRef.invokeMethodAsync('OnWireDrawEnd', '', 0, false);
+                    }
                 } else {
                     dotNetRef.invokeMethodAsync('OnWireDrawEnd', '', 0, false);
                 }
@@ -143,8 +220,14 @@ window.nodeRedEditor = {
                 self.state.lasso = false;
             } else if (self.state.panning) {
                 self.state.panning = false;
-                canvasElement.style.cursor = 'default';
+                canvasElement.style.cursor = self.state.spacebarDown ? 'grab' : 'crosshair';
+            } else if (!self.state.hasMoved) {
+                // Click on empty canvas - deselect all
+                dotNetRef.invokeMethodAsync('OnCanvasClick');
             }
+            
+            self.state.dragNode = null;
+            self.state.hasMoved = false;
         });
 
         // ============================================================
