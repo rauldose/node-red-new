@@ -815,7 +815,10 @@ span.red-ui-header-logo img {
     fill: var(--red-ui-view-background);
 }
 
-.red-ui-workspace-chart-grid line {
+/* Grid lines - both container selector and direct class selectors */
+.red-ui-workspace-chart-grid line,
+.red-ui-workspace-chart-grid-h,
+.red-ui-workspace-chart-grid-v {
     fill: none;
     shape-rendering: crispEdges;
     stroke: var(--red-ui-view-grid-color);
