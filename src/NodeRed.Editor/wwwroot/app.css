@@ -1,6 +1,49 @@
 /* ============================================================
    SOURCE: packages/node_modules/@node-red/editor-client/src/sass/
+   SOURCE: packages/node_modules/@node-red/editor-client/src/sass/workspace.scss
+   SOURCE: packages/node_modules/@node-red/editor-client/src/sass/flow.scss
+   SOURCE: packages/node_modules/@node-red/editor-client/src/sass/colors.scss
    1:1 Translation of Node-RED CSS Variables and Styles
+   
+   UI DEEP ITERATION AUDIT - SECTION 1: WORKSPACE CANVAS
+   ============================================================
+   All values extracted directly from Node-RED source code.
+   
+   CANVAS CONTAINER (#red-ui-workspace-chart):
+   - Source: workspace.scss lines 28-42
+   - overflow: auto
+   - position: absolute
+   - bottom: 26px
+   - top: 35px (tab bar height)
+   - left: 0px
+   - right: 0px
+   - transition: right 0.2s ease
+   
+   GRID PATTERN:
+   - Source: view.js line 39: var gridSize = 20
+   - Grid type: lines (not dots)
+   - Grid color: var(--red-ui-view-grid-color) = #eee
+   - Grid stroke-width: 1px
+   - Grid spacing: 20px x 20px
+   
+   CANVAS DIMENSIONS:
+   - Source: view.js lines 31-32
+   - space_width: 8000
+   - space_height: 8000
+   
+   ZOOM LEVELS:
+   - Source: view.js lines 2489-2498
+   - Minimum: 0.3 (zoomOut stops at 0.3)
+   - Maximum: 2.0 (zoomIn stops at 2.0)
+   - Default: 1.0
+   - Step: 0.1 per action
+   
+   LASSO SELECTION:
+   - Source: flow.scss lines 19-24
+   - stroke-width: 1px
+   - stroke: var(--red-ui-view-lasso-stroke) = #ff7f0e
+   - fill: var(--red-ui-view-lasso-fill) = rgba(20,125,255,0.1)
+   - stroke-dasharray: 10 5
    ============================================================ */
 
 /* ============================================================
@@ -772,7 +815,10 @@ span.red-ui-header-logo img {
     fill: var(--red-ui-view-background);
 }
 
-.red-ui-workspace-chart-grid line {
+/* Grid lines - both container selector and direct class selectors */
+.red-ui-workspace-chart-grid line,
+.red-ui-workspace-chart-grid-h,
+.red-ui-workspace-chart-grid-v {
     fill: none;
     shape-rendering: crispEdges;
     stroke: var(--red-ui-view-grid-color);
@@ -1360,6 +1406,9 @@ g.red-ui-flow-link-selected path.red-ui-flow-link-line {
 
 /* ============================================================
    Shade Overlay
+   NOTE: This is a NodeRed.NET implementation for modal dimming.
+   The shade dims the background but should NOT block pointer events
+   for elements above it (like the tray which has higher z-index).
    ============================================================ */
 #red-ui-full-shade {
     position: fixed;
@@ -1369,6 +1418,7 @@ g.red-ui-flow-link-selected path.red-ui-flow-link-line {
     bottom: 0;
     background: var(--red-ui-shade-color);
     z-index: 999;
+    pointer-events: none;
 }
 
 /* ============================================================
