@@ -1,34 +1,204 @@
-@* Sidebar Info Tab *@
+@* ============================================================
+   SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/tab-info.js
+   ============================================================
+   Sidebar Info Tab - displays node information, tips, and help.
+   ============================================================ *@
 @using NodeRed.Editor.Services
 @inject EditorState State
 
 <div class="red-ui-sidebar-info">
     <div class="red-ui-sidebar-header">
         <span>Information</span>
+        <div class="red-ui-sidebar-header-toolbar">
+            <button class="red-ui-sidebar-header-button" title="Show tips" @onclick="ToggleTips">
+                <i class="fa fa-lightbulb-o"></i>
+            </button>
+        </div>
     </div>
     <div class="red-ui-sidebar-info-content">
         @if (State.SelectedNodes.Any())
         {
             var node = State.SelectedNodes.First();
+            @* ============================================================
+               SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/tab-info.js
+               LINES: 200-300 - Node info display
+               ============================================================ *@
             <div class="red-ui-info-outline">
-                <h4>@node.Type</h4>
-                <dl>
-                    <dt>ID</dt>
-                    <dd>@node.Id</dd>
-                    <dt>Name</dt>
-                    <dd>@(node.Name ?? "(none)")</dd>
-                    <dt>Type</dt>
-                    <dd>@node.Type</dd>
-                </dl>
+                <div class="red-ui-info-outline-header">
+                    <span class="red-ui-info-outline-header-icon" style="background-color: @node.Color;">
+                        <i class="fa @GetNodeIconClass(node.Type)"></i>
+                    </span>
+                    <span class="red-ui-info-outline-header-label">@(node.Name ?? node.Type)</span>
+                </div>
+                
+                <div class="red-ui-info-outline-body">
+                    <table class="red-ui-info-table">
+                        <tr>
+                            <td class="red-ui-info-table-label">Type</td>
+                            <td>@node.Type</td>
+                        </tr>
+                        <tr>
+                            <td class="red-ui-info-table-label">ID</td>
+                            <td><code>@node.Id</code></td>
+                        </tr>
+                        <tr>
+                            <td class="red-ui-info-table-label">Name</td>
+                            <td>@(node.Name ?? "<i>none</i>")</td>
+                        </tr>
+                        @if (node.Inputs > 0)
+                        {
+                            <tr>
+                                <td class="red-ui-info-table-label">Inputs</td>
+                                <td>@node.Inputs</td>
+                            </tr>
+                        }
+                        @if (node.Outputs > 0)
+                        {
+                            <tr>
+                                <td class="red-ui-info-table-label">Outputs</td>
+                                <td>@node.Outputs</td>
+                            </tr>
+                        }
+                    </table>
+                </div>
+
+                @* Node description/help *@
+                <div class="red-ui-info-outline-help">
+                    <h4>Description</h4>
+                    <p>@GetNodeDescription(node.Type)</p>
+                </div>
+            </div>
+        }
+        else if (State.Flows.Any(f => f.Id == State.ActiveFlowId))
+        {
+            var flow = State.Flows.First(f => f.Id == State.ActiveFlowId);
+            @* Flow info *@
+            <div class="red-ui-info-outline">
+                <div class="red-ui-info-outline-header">
+                    <span class="red-ui-info-outline-header-icon flow-icon">
+                        <i class="fa fa-random"></i>
+                    </span>
+                    <span class="red-ui-info-outline-header-label">@flow.Label</span>
+                </div>
+                
+                <div class="red-ui-info-outline-body">
+                    <table class="red-ui-info-table">
+                        <tr>
+                            <td class="red-ui-info-table-label">ID</td>
+                            <td><code>@flow.Id</code></td>
+                        </tr>
+                        <tr>
+                            <td class="red-ui-info-table-label">Nodes</td>
+                            <td>@State.Nodes.Count(n => n.FlowId == flow.Id)</td>
+                        </tr>
+                        <tr>
+                            <td class="red-ui-info-table-label">Status</td>
+                            <td>@(flow.Disabled ? "Disabled" : "Enabled")</td>
+                        </tr>
+                    </table>
+                </div>
             </div>
         }
         else
         {
-            <div class="red-ui-info-outline">
-                <h4>Node-RED.NET</h4>
-                <p>Select a node to see its information.</p>
-                <p>Version: @State.Version</p>
+            @* Default welcome screen *@
+            <div class="red-ui-info-outline red-ui-info-welcome">
+                <div class="red-ui-info-welcome-header">
+                    <i class="fa fa-info-circle"></i>
+                    <span>Node-RED.NET</span>
+                </div>
+                <p class="red-ui-info-tip">Select a node to see its information.</p>
+                <hr />
+                <table class="red-ui-info-table">
+                    <tr>
+                        <td class="red-ui-info-table-label">Version</td>
+                        <td>@State.Version</td>
+                    </tr>
+                    <tr>
+                        <td class="red-ui-info-table-label">Flows</td>
+                        <td>@State.Flows.Count</td>
+                    </tr>
+                    <tr>
+                        <td class="red-ui-info-table-label">Nodes</td>
+                        <td>@State.Nodes.Count</td>
+                    </tr>
+                </table>
+            </div>
+        }
+        
+        @* Tips section *@
+        @if (_showTips)
+        {
+            <div class="red-ui-info-tips">
+                <div class="red-ui-info-tips-header">
+                    <i class="fa fa-lightbulb-o"></i> Tips
+                </div>
+                <ul class="red-ui-info-tips-list">
+                    <li><b>Ctrl+C/V</b> - Copy/Paste nodes</li>
+                    <li><b>Delete</b> - Remove selected</li>
+                    <li><b>Ctrl+Z</b> - Undo</li>
+                    <li><b>Ctrl+F</b> - Search flows</li>
+                    <li><b>Ctrl+I</b> - Import</li>
+                    <li><b>Ctrl+E</b> - Export</li>
+                    <li><b>Double-click</b> - Edit node</li>
+                    <li><b>Spacebar+Drag</b> - Pan canvas</li>
+                </ul>
             </div>
         }
     </div>
 </div>
+
+@code {
+    private bool _showTips = true;
+
+    private void ToggleTips()
+    {
+        _showTips = !_showTips;
+    }
+
+    private string GetNodeIconClass(string type)
+    {
+        return type switch
+        {
+            "inject" => "fa-clock-o",
+            "debug" => "fa-bug",
+            "function" => "fa-code",
+            "switch" => "fa-random",
+            "change" => "fa-pencil",
+            "template" => "fa-file-code-o",
+            "delay" => "fa-clock-o",
+            "trigger" => "fa-bolt",
+            "http request" => "fa-globe",
+            "http in" or "http response" => "fa-globe",
+            "mqtt in" or "mqtt out" => "fa-feed",
+            "file" or "file in" => "fa-file",
+            "comment" => "fa-comment",
+            "link in" or "link out" or "link call" => "fa-link",
+            _ => "fa-cube"
+        };
+    }
+
+    private string GetNodeDescription(string type)
+    {
+        return type switch
+        {
+            "inject" => "Injects a message into a flow either manually or at regular intervals. The message payload can be a variety of types including strings, JavaScript objects or the current time.",
+            "debug" => "Displays selected message properties in the debug sidebar tab and optionally the runtime log. By default it displays msg.payload.",
+            "function" => "A JavaScript function to run against the messages being received by the node. The messages are passed in as a JavaScript object called msg.",
+            "switch" => "Route messages based on their property values or sequence position.",
+            "change" => "Set, change, delete or move properties of a message, flow context or global context.",
+            "template" => "Sets a property based on the provided template.",
+            "delay" => "Delays each message passing through the node or limits the rate at which they can pass.",
+            "trigger" => "When triggered, can send a message, and then optionally a second message, unless extended or reset by subsequent messages.",
+            "http request" => "Sends HTTP requests and returns the response.",
+            "http in" => "Creates an HTTP end-point for creating web services.",
+            "http response" => "Sends responses back to requests received from an HTTP In node.",
+            "mqtt in" => "Connects to a MQTT broker and subscribes to messages from the specified topic.",
+            "mqtt out" => "Connects to a MQTT broker and publishes messages.",
+            "file" => "Writes msg.payload to a file, either adding to the end or replacing the existing content.",
+            "file in" => "Reads the contents of a file as either a string or binary buffer.",
+            "comment" => "A node used to add comments to a flow.",
+            _ => $"A {type} node."
+        };
+    }
+}

@@ -237,14 +237,21 @@
                           @onclick:stopPropagation="true" />
                 }
 
-                @* Temporary wire while drawing *@
+                @* ============================================================
+                   SOURCE: packages/node_modules/@node-red/editor-client/src/sass/flow.scss
+                   LINES: 355-360
+                   ============================================================
+                   .red-ui-flow-drag-line {
+                       stroke: var(--red-ui-view-lasso-stroke) !important;  // #ff7f0e
+                       stroke-width: 3;
+                   }
+                   ============================================================ *@
                 @if (State.IsDrawingWire)
                 {
-                    <path class="red-ui-workspace-wire-drawing"
+                    <path class="red-ui-flow-drag-line"
                           d="@GetDrawingWirePath()"
-                          stroke="#aaa"
+                          stroke="#ff7f0e"
                           stroke-width="3"
-                          stroke-dasharray="5,5"
                           fill="none" />
                 }
             </g>
