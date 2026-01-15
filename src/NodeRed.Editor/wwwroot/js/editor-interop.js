@@ -594,6 +594,7 @@ window.nodeRedEditor = {
             // Backward path - simplified version
             const cp = Math.max(75, Math.abs(dy) / 2);
             return `M ${x1} ${y1} C ${x1 + cp} ${y1}, ${x2 - cp} ${y2}, ${x2} ${y2}`;
+        }
     },
 
     // ============================================================
