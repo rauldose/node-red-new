@@ -58,6 +58,30 @@ public class EditorState
     public List<PaletteCategory> PaletteCategories { get; set; } = new();
     public PaletteNode? DraggedNode { get; set; }
 
+    // Context menu
+    public bool ContextMenuOpen { get; set; }
+    public Point ContextMenuPosition { get; set; } = new(0, 0);
+    public List<ContextMenuItem> ContextMenuItems { get; set; } = new();
+
+    // Wire drawing state
+    public bool IsDrawingWire { get; set; }
+    public string? WireSourceNodeId { get; set; }
+    public int WireSourcePort { get; set; }
+    public Point WireDrawEnd { get; set; } = new(0, 0);
+
+    // Node dragging state
+    public bool IsDraggingNode { get; set; }
+    public string? DraggingNodeId { get; set; }
+    public Point DragOffset { get; set; } = new(0, 0);
+
+    // Clipboard
+    public List<FlowNode> ClipboardNodes { get; set; } = new();
+    public List<FlowWire> ClipboardWires { get; set; } = new();
+
+    // Undo/Redo stacks
+    public Stack<EditorAction> UndoStack { get; set; } = new();
+    public Stack<EditorAction> RedoStack { get; set; } = new();
+
     // Flows
     public string ActiveFlowId { get; set; } = "";
     public List<Flow> Flows { get; set; } = new();
@@ -608,4 +632,31 @@ public class FlowsResponse
 {
     public List<Dictionary<string, object>>? Flows { get; set; }
     public string? Rev { get; set; }
+}
+
+// ============================================================
+// SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/menu.js
+// ============================================================
+public class ContextMenuItem
+{
+    public string Id { get; set; } = "";
+    public string Label { get; set; } = "";
+    public string? Icon { get; set; }
+    public string? Shortcut { get; set; }
+    public bool Disabled { get; set; }
+    public bool IsSeparator { get; set; }
+    public Action? Action { get; set; }
+}
+
+// ============================================================
+// SOURCE: packages/node_modules/@node-red/editor-client/src/js/history.js
+// ============================================================
+public class EditorAction
+{
+    public string Type { get; set; } = "";
+    public DateTime Timestamp { get; set; } = DateTime.Now;
+    public List<FlowNode>? Nodes { get; set; }
+    public List<FlowWire>? Wires { get; set; }
+    public Dictionary<string, object>? Before { get; set; }
+    public Dictionary<string, object>? After { get; set; }
 }

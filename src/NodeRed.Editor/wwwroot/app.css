@@ -1443,3 +1443,257 @@ g.red-ui-flow-node-selected .red-ui-flow-node {
     max-width: 300px;
     box-shadow: 0 2px 10px var(--red-ui-shadow);
 }
+
+/* ============================================================
+   SOURCE: packages/node_modules/@node-red/editor-client/src/sass/menu.scss
+   Context Menu - Pixel-perfect translation
+   ============================================================ */
+.red-ui-context-menu {
+    position: fixed;
+    background: var(--red-ui-secondary-background);
+    border: 1px solid var(--red-ui-primary-border-color);
+    border-radius: 4px;
+    box-shadow: 0 4px 15px var(--red-ui-shadow);
+    z-index: 2000;
+    min-width: 180px;
+    padding: 4px 0;
+    font-size: 13px;
+}
+
+.red-ui-context-menu-item {
+    padding: 6px 30px 6px 35px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: relative;
+    color: var(--red-ui-primary-text-color);
+}
+
+.red-ui-context-menu-item:hover {
+    background: var(--red-ui-secondary-background-hover);
+}
+
+.red-ui-context-menu-item.disabled {
+    color: var(--red-ui-secondary-text-color-disabled);
+    cursor: default;
+}
+
+.red-ui-context-menu-item.disabled:hover {
+    background: transparent;
+}
+
+.red-ui-context-menu-item i {
+    position: absolute;
+    left: 10px;
+    width: 16px;
+    text-align: center;
+    color: var(--red-ui-secondary-text-color);
+}
+
+.red-ui-context-menu-shortcut {
+    margin-left: auto;
+    color: var(--red-ui-tertiary-text-color);
+    font-size: 11px;
+}
+
+.red-ui-context-menu-separator {
+    height: 1px;
+    background: var(--red-ui-secondary-border-color);
+    margin: 4px 0;
+}
+
+/* ============================================================
+   Palette Enhancements
+   ============================================================ */
+.red-ui-palette-search {
+    position: relative;
+}
+
+.red-ui-palette-search i.fa-search {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--red-ui-tertiary-text-color);
+}
+
+.red-ui-palette-search-input {
+    padding-left: 30px !important;
+}
+
+.red-ui-palette-search-clear {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--red-ui-tertiary-text-color);
+    padding: 4px;
+}
+
+.red-ui-palette-search-clear:hover {
+    color: var(--red-ui-primary-text-color);
+}
+
+.red-ui-palette-header-count {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--red-ui-tertiary-text-color);
+}
+
+.red-ui-palette-node {
+    position: relative;
+    overflow: hidden;
+}
+
+.red-ui-palette-node-stripe {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 7px;
+    border-radius: 5px 0 0 5px;
+}
+
+.red-ui-palette-node-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    width: 16px;
+    text-align: center;
+}
+
+.red-ui-palette-label {
+    margin-left: 30px;
+}
+
+.red-ui-palette-port {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: var(--red-ui-port-background);
+    border: 1px solid var(--red-ui-port-border-color);
+    border-radius: 2px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.red-ui-palette-port-input {
+    left: -5px;
+}
+
+.red-ui-palette-port-output {
+    right: -5px;
+}
+
+/* ============================================================
+   Wire Drawing
+   ============================================================ */
+.red-ui-workspace-wire-drawing {
+    pointer-events: none;
+}
+
+/* ============================================================
+   Node Stripe (type indicator on left edge)
+   ============================================================ */
+.red-ui-workspace-node-stripe {
+    pointer-events: none;
+}
+
+.red-ui-workspace-node-icon {
+    fill: var(--red-ui-primary-text-color);
+    pointer-events: none;
+}
+
+/* ============================================================
+   Notifications
+   ============================================================ */
+.red-ui-notifications {
+    position: fixed;
+    top: calc(var(--red-ui-header-height) + 10px);
+    right: 10px;
+    z-index: 3000;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.red-ui-notification {
+    background: var(--red-ui-secondary-background);
+    border: 1px solid var(--red-ui-primary-border-color);
+    border-radius: 4px;
+    box-shadow: 0 4px 15px var(--red-ui-shadow);
+    padding: 10px 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 250px;
+    animation: slideIn 0.3s ease;
+    transition: opacity 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.red-ui-notification-info {
+    border-left: 4px solid var(--red-ui-text-color-link);
+}
+
+.red-ui-notification-success {
+    border-left: 4px solid var(--red-ui-text-color-success);
+}
+
+.red-ui-notification-warning {
+    border-left: 4px solid var(--red-ui-text-color-warning);
+}
+
+.red-ui-notification-error {
+    border-left: 4px solid var(--red-ui-text-color-error);
+}
+
+.red-ui-notification-message {
+    flex: 1;
+    font-size: 13px;
+}
+
+.red-ui-notification-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--red-ui-tertiary-text-color);
+    font-size: 16px;
+    padding: 0;
+    line-height: 1;
+}
+
+.red-ui-notification-close:hover {
+    color: var(--red-ui-primary-text-color);
+}
+
+/* ============================================================
+   Drag Preview
+   ============================================================ */
+.red-ui-palette-node-drag-preview {
+    position: fixed;
+    pointer-events: none;
+    background: #ddd;
+    border: 1px solid #999;
+    border-radius: 5px;
+    padding: 5px 10px;
+    font-size: 12px;
+    z-index: 10000;
+    opacity: 0.8;
+}

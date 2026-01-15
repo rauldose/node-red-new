@@ -6,11 +6,19 @@
 
 @using NodeRed.Editor.Services
 @inject EditorState State
+@inject IJSRuntime JS
 
-<div class="red-ui-palette-container">
+<div class="red-ui-palette-container" @ref="_paletteRef">
     <div id="red-ui-palette-search" class="red-ui-palette-search">
+        <i class="fa fa-search"></i>
         <input type="text" @bind="SearchText" @bind:event="oninput" 
-               placeholder="Filter nodes" class="red-ui-palette-search-input" />
+               placeholder="filter nodes" class="red-ui-palette-search-input" />
+        @if (!string.IsNullOrEmpty(SearchText))
+        {
+            <button class="red-ui-palette-search-clear" @onclick="() => SearchText = string.Empty">
+                <i class="fa fa-times"></i>
+            </button>
+        }
     </div>
     
     <div class="red-ui-palette-scroll">
@@ -20,6 +28,7 @@
                 <div class="red-ui-palette-header" @onclick="() => ToggleCategory(category.Name)">
                     <i class="fa @(category.Collapsed ? "fa-angle-right" : "fa-angle-down")"></i>
                     <span>@category.Name</span>
+                    <span class="red-ui-palette-header-count">@category.Nodes.Count</span>
                 </div>
                 
                 @if (!category.Collapsed)
@@ -30,8 +39,32 @@
                             <div class="red-ui-palette-node" 
                                  draggable="true"
                                  style="background-color: @node.Color"
+                                 data-node-type="@node.Type"
+                                 data-node-label="@(node.Label ?? node.Type)"
+                                 data-node-color="@node.Color"
+                                 data-node-inputs="@node.Inputs"
+                                 data-node-outputs="@node.Outputs"
                                  @ondragstart="() => OnNodeDragStart(node)">
+                                @* Node type stripe *@
+                                <div class="red-ui-palette-node-stripe" 
+                                     style="background-color: @EditorUtils.DarkenColor(node.Color, 0.15)">
+                                </div>
+                                @* Node icon *@
+                                <div class="red-ui-palette-node-icon">
+                                    @EditorUtils.GetNodeIcon(node.Type)
+                                </div>
+                                @* Node label *@
                                 <div class="red-ui-palette-label">@node.Type</div>
+                                @* Input port indicator *@
+                                @if (node.Inputs > 0)
+                                {
+                                    <div class="red-ui-palette-port red-ui-palette-port-input"></div>
+                                }
+                                @* Output port indicator *@
+                                @if (node.Outputs > 0)
+                                {
+                                    <div class="red-ui-palette-port red-ui-palette-port-output"></div>
+                                }
                             </div>
                         }
                     </div>
@@ -42,6 +75,7 @@
 </div>
 
 @code {
+    private ElementReference _paletteRef;
     private string SearchText { get; set; } = "";
 
     private List<PaletteCategory> GetFilteredCategories()

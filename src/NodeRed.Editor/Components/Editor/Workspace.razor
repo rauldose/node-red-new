@@ -5,8 +5,10 @@
    ============================================================ *@
 
 @using NodeRed.Editor.Services
+@using Microsoft.JSInterop
 @inject EditorState State
 @inject IJSRuntime JS
+@implements IAsyncDisposable
 
 <div class="red-ui-workspace-container">
     @* Tab bar for flows *@
@@ -15,7 +17,8 @@
             @foreach (var flow in State.Flows)
             {
                 <li class="red-ui-tab @(flow.Id == State.ActiveFlowId ? "active" : "")"
-                    @onclick="() => SelectFlow(flow.Id)">
+                    @onclick="() => SelectFlow(flow.Id)"
+                    @ondblclick="() => EditFlow(flow)">
                     <span class="red-ui-tab-label">@flow.Label</span>
                     @if (flow.Disabled)
                     {
@@ -30,17 +33,23 @@
     </div>
 
     @* Canvas area *@
-    <div class="red-ui-workspace-chart" 
+    <div @ref="_canvasRef" 
+         class="red-ui-workspace-chart" 
          @ondrop="OnDrop" 
          @ondragover="OnDragOver"
          @ondragover:preventDefault="true"
          @onclick="OnCanvasClick"
-         @onmousemove="OnMouseMove">
+         @onmousemove="OnMouseMove"
+         @onmousedown="OnMouseDown"
+         @onmouseup="OnMouseUp"
+         @onkeydown="OnKeyDown"
+         tabindex="0">
         
         <svg class="red-ui-workspace-chart-svg" 
              width="100%" 
              height="100%"
-             viewBox="@ViewBox">
+             viewBox="@ViewBox"
+             style="transform: scale(@State.Scale.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)); transform-origin: 0 0;">
             
             @* Grid pattern *@
             <defs>
@@ -56,10 +65,22 @@
                 {
                     <path class="red-ui-workspace-wire @(wire.Selected ? "selected" : "")"
                           d="@wire.Path"
-                          stroke="@wire.Color"
+                          stroke="@(wire.Selected ? "#ff7f0e" : wire.Color)"
                           stroke-width="3"
                           fill="none"
-                          @onclick="() => SelectWire(wire)" />
+                          @onclick="() => SelectWire(wire)"
+                          @onclick:stopPropagation="true" />
+                }
+
+                @* Temporary wire while drawing *@
+                @if (State.IsDrawingWire)
+                {
+                    <path class="red-ui-workspace-wire-drawing"
+                          d="@GetDrawingWirePath()"
+                          stroke="#aaa"
+                          stroke-width="3"
+                          stroke-dasharray="5,5"
+                          fill="none" />
                 }
             </g>
             
@@ -68,32 +89,64 @@
                 @foreach (var node in GetActiveFlowNodes())
                 {
                     <g class="red-ui-workspace-node @(node.Selected ? "selected" : "")"
+                       data-node-id="@node.Id"
                        transform="translate(@node.X, @node.Y)"
-                       @onclick="() => SelectNode(node)"
-                       @ondblclick="() => EditNode(node)">
+                       @onclick="(e) => SelectNode(node, e)"
+                       @onclick:stopPropagation="true"
+                       @ondblclick="() => EditNode(node)"
+                       @onmousedown="(e) => StartNodeDrag(node, e)"
+                       @oncontextmenu="(e) => ShowNodeContextMenu(node, e)"
+                       @oncontextmenu:preventDefault="true">
                         
                         @* Node body *@
                         <rect class="red-ui-workspace-node-body"
                               width="@node.Width" 
                               height="@node.Height"
                               rx="5" ry="5"
-                              fill="@node.Color" />
+                              fill="@node.Color"
+                              stroke="@(node.Selected ? "#ff7f0e" : "#999")"
+                              stroke-width="@(node.Selected ? 2 : 1)" />
+                        
+                        @* Left stripe for node type *@
+                        <rect class="red-ui-workspace-node-stripe"
+                              x="0" y="0"
+                              width="7" height="@node.Height"
+                              rx="5" ry="5"
+                              fill="@EditorUtils.DarkenColor(node.Color, 0.2)" />
+                        
+                        @* Node icon *@
+                        <g transform="translate(10, @(node.Height / 2 - 7))">
+                            <text class="red-ui-workspace-node-icon" font-size="14">
+                                @EditorUtils.GetNodeIcon(node.Type)
+                            </text>
+                        </g>
                         
                         @* Node label *@
                         <text class="red-ui-workspace-node-label"
-                              x="@(node.Width / 2)" 
+                              x="@(node.Width / 2 + 5)" 
                               y="@(node.Height / 2 + 4)"
                               text-anchor="middle">
-                            @node.Label
+                            @(node.Name ?? node.Label)
                         </text>
                         
                         @* Input ports *@
                         @if (node.Inputs > 0)
                         {
-                            <rect class="red-ui-workspace-port-input"
-                                  x="-5" y="@(node.Height / 2 - 5)"
-                                  width="10" height="10"
-                                  rx="2" ry="2" />
+                            for (int i = 0; i < node.Inputs; i++)
+                            {
+                                var portY = node.Inputs == 1 
+                                    ? node.Height / 2 - 5 
+                                    : (node.Height / (node.Inputs + 1)) * (i + 1) - 5;
+                                var portIndex = i;
+                                
+                                <rect class="red-ui-workspace-port-input"
+                                      data-port-index="@portIndex"
+                                      x="-5" y="@portY"
+                                      width="10" height="10"
+                                      rx="2" ry="2"
+                                      @onmouseup="(e) => EndWireDraw(node, portIndex, e)"
+                                      @onmouseup:stopPropagation="true" />
+                            }
                         }
                         
                         @* Output ports *@
@@ -102,11 +155,15 @@
                             var portY = node.Outputs == 1 
                                 ? node.Height / 2 - 5 
                                 : (node.Height / (node.Outputs + 1)) * (i + 1) - 5;
+                            var portIndex = i;
                             
                             <rect class="red-ui-workspace-port-output"
+                                  data-port-index="@portIndex"
                                   x="@(node.Width - 5)" y="@portY"
                                   width="10" height="10"
-                                  rx="2" ry="2" />
+                                  rx="2" ry="2"
+                                  @onmousedown="(e) => StartWireDraw(node, portIndex, e)"
+                                  @onmousedown:stopPropagation="true" />
                         }
                         
                         @* Status indicator *@
@@ -124,7 +181,7 @@
                 }
             </g>
             
-            @* Selection box (if dragging) *@
+            @* Selection box (lasso) *@
             @if (State.IsSelecting)
             {
                 <rect class="red-ui-workspace-lasso"
@@ -141,7 +198,34 @@
 </div>
 
 @code {
+    private ElementReference _canvasRef;
+    private DotNetObjectReference<Workspace>? _dotNetRef;
+    private bool _initialized = false;
+
     private string ViewBox => $"0 0 {State.CanvasWidth} {State.CanvasHeight}";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !_initialized)
+        {
+            _dotNetRef = DotNetObjectReference.Create(this);
+            try
+            {
+                await JS.InvokeVoidAsync("nodeRedEditor.initCanvas", _canvasRef, _dotNetRef);
+                await JS.InvokeVoidAsync("nodeRedEditor.initKeyboard", _dotNetRef);
+            }
+            catch (JSException)
+            {
+                // JS interop not available (SSR or prerendering)
+            }
+            _initialized = true;
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _dotNetRef?.Dispose();
+    }
 
     private List<FlowNode> GetActiveFlowNodes()
     {
@@ -159,6 +243,21 @@
         StateHasChanged();
     }
 
+    private void EditFlow(Flow flow)
+    {
+        // Open flow properties editor
+        State.CurrentTray = new TrayConfig
+        {
+            Title = "Edit flow",
+            Open = true,
+            ShowDelete = true,
+            OnSave = () => { },
+            OnDelete = () => { State.Flows.Remove(flow); }
+        };
+        State.ShowShade = true;
+        StateHasChanged();
+    }
+
     private void AddFlow()
     {
         var newFlow = new Flow
@@ -173,9 +272,9 @@
         StateHasChanged();
     }
 
-    private void SelectNode(FlowNode node)
+    private void SelectNode(FlowNode node, MouseEventArgs e)
     {
-        if (!State.IsMultiSelect)
+        if (!e.ShiftKey && !e.CtrlKey)
         {
             foreach (var n in State.Nodes) n.Selected = false;
             foreach (var w in State.Wires) w.Selected = false;
@@ -203,10 +302,11 @@
 
     private void OnCanvasClick()
     {
-        if (!State.IsMultiSelect)
+        if (!State.IsMultiSelect && !State.IsDrawingWire && !State.IsDraggingNode)
         {
             foreach (var n in State.Nodes) n.Selected = false;
             foreach (var w in State.Wires) w.Selected = false;
+            State.ContextMenuOpen = false;
             StateHasChanged();
         }
     }
@@ -220,14 +320,18 @@
     {
         if (State.DraggedNode is not null)
         {
+            // Snap to grid
+            var x = (State.DropPosition.X / 20) * 20;
+            var y = (State.DropPosition.Y / 20) * 20;
+
             var newNode = new FlowNode
             {
                 Id = NodeRed.Util.Util.GenerateId(),
                 Type = State.DraggedNode.Type,
                 Label = State.DraggedNode.Label ?? State.DraggedNode.Type,
                 FlowId = State.ActiveFlowId,
-                X = State.DropPosition.X,
-                Y = State.DropPosition.Y,
+                X = x,
+                Y = y,
                 Width = 120,
                 Height = 30,
                 Color = State.DraggedNode.Color,
@@ -244,5 +348,468 @@
     private void OnMouseMove(MouseEventArgs e)
     {
         State.DropPosition = new Point((int)e.OffsetX, (int)e.OffsetY);
+
+        if (State.IsDraggingNode && !string.IsNullOrEmpty(State.DraggingNodeId))
+        {
+            var node = State.Nodes.FirstOrDefault(n => n.Id == State.DraggingNodeId);
+            if (node != null)
+            {
+                // Snap to grid
+                node.X = ((int)e.OffsetX - State.DragOffset.X) / 20 * 20;
+                node.Y = ((int)e.OffsetY - State.DragOffset.Y) / 20 * 20;
+                
+                // Update connected wires
+                UpdateWirePaths();
+                StateHasChanged();
+            }
+        }
+        else if (State.IsDrawingWire)
+        {
+            State.WireDrawEnd = new Point((int)e.OffsetX, (int)e.OffsetY);
+            StateHasChanged();
+        }
+        else if (State.IsSelecting)
+        {
+            State.SelectionEnd = new Point((int)e.OffsetX, (int)e.OffsetY);
+            StateHasChanged();
+        }
+    }
+
+    private void OnMouseDown(MouseEventArgs e)
+    {
+        if (e.Button == 0 && !State.IsDrawingWire && !State.IsDraggingNode)
+        {
+            // Start lasso selection
+            State.IsSelecting = true;
+            State.SelectionStart = new Point((int)e.OffsetX, (int)e.OffsetY);
+            State.SelectionEnd = State.SelectionStart;
+        }
+    }
+
+    private void OnMouseUp(MouseEventArgs e)
+    {
+        if (State.IsDraggingNode)
+        {
+            State.IsDraggingNode = false;
+            State.DraggingNodeId = null;
+            State.MarkDirty();
+        }
+
+        if (State.IsDrawingWire)
+        {
+            // Wire wasn't connected - cancel
+            State.IsDrawingWire = false;
+            State.WireSourceNodeId = null;
+        }
+
+        if (State.IsSelecting)
+        {
+            // Select nodes in lasso
+            var minX = Math.Min(State.SelectionStart.X, State.SelectionEnd.X);
+            var minY = Math.Min(State.SelectionStart.Y, State.SelectionEnd.Y);
+            var maxX = Math.Max(State.SelectionStart.X, State.SelectionEnd.X);
+            var maxY = Math.Max(State.SelectionStart.Y, State.SelectionEnd.Y);
+
+            foreach (var node in GetActiveFlowNodes())
+            {
+                if (node.X >= minX && node.X + node.Width <= maxX &&
+                    node.Y >= minY && node.Y + node.Height <= maxY)
+                {
+                    node.Selected = true;
+                }
+            }
+
+            State.IsSelecting = false;
+            StateHasChanged();
+        }
+    }
+
+    private void OnKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Delete" || e.Key == "Backspace")
+        {
+            DeleteSelected();
+        }
+        else if (e.CtrlKey && e.Key == "a")
+        {
+            SelectAll();
+        }
+        else if (e.CtrlKey && e.Key == "c")
+        {
+            CopySelected();
+        }
+        else if (e.CtrlKey && e.Key == "v")
+        {
+            PasteClipboard();
+        }
+    }
+
+    private void StartNodeDrag(FlowNode node, MouseEventArgs e)
+    {
+        if (e.Button == 0)
+        {
+            State.IsDraggingNode = true;
+            State.DraggingNodeId = node.Id;
+            State.DragOffset = new Point((int)e.OffsetX - node.X, (int)e.OffsetY - node.Y);
+        }
+    }
+
+    private void StartWireDraw(FlowNode node, int portIndex, MouseEventArgs e)
+    {
+        State.IsDrawingWire = true;
+        State.WireSourceNodeId = node.Id;
+        State.WireSourcePort = portIndex;
+        
+        // Calculate start position
+        var sourceY = node.Outputs == 1 
+            ? node.Y + node.Height / 2 
+            : node.Y + (node.Height / (node.Outputs + 1)) * (portIndex + 1);
+        var sourceX = node.X + node.Width;
+        
+        State.WireDrawEnd = new Point(sourceX, sourceY);
+        StateHasChanged();
+    }
+
+    private void EndWireDraw(FlowNode targetNode, int targetPortIndex, MouseEventArgs e)
+    {
+        if (State.IsDrawingWire && !string.IsNullOrEmpty(State.WireSourceNodeId))
+        {
+            var sourceNode = State.Nodes.FirstOrDefault(n => n.Id == State.WireSourceNodeId);
+            if (sourceNode != null && sourceNode.Id != targetNode.Id)
+            {
+                // Check if wire already exists
+                var existingWire = State.Wires.FirstOrDefault(w =>
+                    w.SourceId == State.WireSourceNodeId &&
+                    w.SourcePort == State.WireSourcePort &&
+                    w.TargetId == targetNode.Id &&
+                    w.TargetPort == targetPortIndex);
+
+                if (existingWire == null)
+                {
+                    var newWire = new FlowWire
+                    {
+                        SourceId = State.WireSourceNodeId,
+                        SourcePort = State.WireSourcePort,
+                        TargetId = targetNode.Id,
+                        TargetPort = targetPortIndex,
+                        FlowId = State.ActiveFlowId
+                    };
+                    newWire.Path = CalculateWirePath(newWire);
+                    State.Wires.Add(newWire);
+                    State.MarkDirty();
+                }
+            }
+        }
+
+        State.IsDrawingWire = false;
+        State.WireSourceNodeId = null;
+        StateHasChanged();
+    }
+
+    private void ShowNodeContextMenu(FlowNode node, MouseEventArgs e)
+    {
+        State.ContextMenuPosition = new Point((int)e.ClientX, (int)e.ClientY);
+        State.ContextMenuItems = new List<ContextMenuItem>
+        {
+            new() { Label = "Edit", Icon = "pencil", Action = () => EditNode(node) },
+            new() { Label = "Copy", Icon = "files-o", Shortcut = "Ctrl+C", Action = () => CopySelected() },
+            new() { Label = "Cut", Icon = "cut", Shortcut = "Ctrl+X", Action = () => CutSelected() },
+            new() { IsSeparator = true },
+            new() { Label = "Delete", Icon = "trash", Shortcut = "Delete", Action = () => DeleteSelected() },
+            new() { IsSeparator = true },
+            new() { Label = "Enable", Action = () => { } },
+            new() { Label = "Disable", Action = () => { } }
+        };
+        State.ContextMenuOpen = true;
+        StateHasChanged();
+    }
+
+    private string GetDrawingWirePath()
+    {
+        if (!State.IsDrawingWire || string.IsNullOrEmpty(State.WireSourceNodeId))
+            return "";
+
+        var sourceNode = State.Nodes.FirstOrDefault(n => n.Id == State.WireSourceNodeId);
+        if (sourceNode == null) return "";
+
+        var sourceY = sourceNode.Outputs == 1 
+            ? sourceNode.Y + sourceNode.Height / 2 
+            : sourceNode.Y + (sourceNode.Height / (sourceNode.Outputs + 1)) * (State.WireSourcePort + 1);
+        var sourceX = sourceNode.X + sourceNode.Width;
+
+        return CalculateWirePathFromPoints(sourceX, sourceY, State.WireDrawEnd.X, State.WireDrawEnd.Y);
+    }
+
+    private void UpdateWirePaths()
+    {
+        foreach (var wire in State.Wires.Where(w => w.FlowId == State.ActiveFlowId))
+        {
+            wire.Path = CalculateWirePath(wire);
+        }
+    }
+
+    private string CalculateWirePath(FlowWire wire)
+    {
+        var sourceNode = State.Nodes.FirstOrDefault(n => n.Id == wire.SourceId);
+        var targetNode = State.Nodes.FirstOrDefault(n => n.Id == wire.TargetId);
+
+        if (sourceNode == null || targetNode == null)
+        {
+            return "";
+        }
+
+        var sourceY = sourceNode.Outputs == 1
+            ? sourceNode.Y + sourceNode.Height / 2
+            : sourceNode.Y + (sourceNode.Height / (sourceNode.Outputs + 1)) * (wire.SourcePort + 1);
+        var sourceX = sourceNode.X + sourceNode.Width;
+
+        var targetY = targetNode.Inputs == 1
+            ? targetNode.Y + targetNode.Height / 2
+            : targetNode.Y + (targetNode.Height / (targetNode.Inputs + 1)) * (wire.TargetPort + 1);
+        var targetX = targetNode.X;
+
+        return CalculateWirePathFromPoints(sourceX, sourceY, targetX, targetY);
+    }
+
+    private string CalculateWirePathFromPoints(int x1, int y1, int x2, int y2)
+    {
+        var dx = Math.Abs(x2 - x1);
+        var dy = Math.Abs(y2 - y1);
+        
+        var cp = Math.Max(75, dx / 2);
+        
+        if (x2 < x1)
+        {
+            cp = Math.Max(75, dy / 2);
+        }
+        
+        return $"M {x1} {y1} C {x1 + cp} {y1}, {x2 - cp} {y2}, {x2} {y2}";
+    }
+
+    private void DeleteSelected()
+    {
+        var selectedNodes = State.Nodes.Where(n => n.Selected).ToList();
+        var selectedWires = State.Wires.Where(w => w.Selected).ToList();
+
+        foreach (var node in selectedNodes)
+        {
+            State.Nodes.Remove(node);
+            // Remove connected wires
+            State.Wires.RemoveAll(w => w.SourceId == node.Id || w.TargetId == node.Id);
+        }
+
+        foreach (var wire in selectedWires)
+        {
+            State.Wires.Remove(wire);
+        }
+
+        if (selectedNodes.Count > 0 || selectedWires.Count > 0)
+        {
+            State.MarkDirty();
+            StateHasChanged();
+        }
+    }
+
+    private void SelectAll()
+    {
+        foreach (var node in GetActiveFlowNodes())
+        {
+            node.Selected = true;
+        }
+        StateHasChanged();
+    }
+
+    private void CopySelected()
+    {
+        State.ClipboardNodes = State.Nodes.Where(n => n.Selected).ToList();
+        State.ClipboardWires = State.Wires.Where(w =>
+            State.ClipboardNodes.Any(n => n.Id == w.SourceId) &&
+            State.ClipboardNodes.Any(n => n.Id == w.TargetId)
+        ).ToList();
+    }
+
+    private void CutSelected()
+    {
+        CopySelected();
+        DeleteSelected();
+    }
+
+    private void PasteClipboard()
+    {
+        if (State.ClipboardNodes.Count == 0) return;
+
+        var idMap = new Dictionary<string, string>();
+        var offsetX = 20;
+        var offsetY = 20;
+
+        foreach (var node in State.ClipboardNodes)
+        {
+            var newId = NodeRed.Util.Util.GenerateId();
+            idMap[node.Id] = newId;
+
+            var newNode = new FlowNode
+            {
+                Id = newId,
+                Type = node.Type,
+                Name = node.Name,
+                Label = node.Label,
+                FlowId = State.ActiveFlowId,
+                X = node.X + offsetX,
+                Y = node.Y + offsetY,
+                Width = node.Width,
+                Height = node.Height,
+                Color = node.Color,
+                Inputs = node.Inputs,
+                Outputs = node.Outputs,
+                Selected = true
+            };
+            State.Nodes.Add(newNode);
+        }
+
+        // Deselect original nodes
+        foreach (var node in State.Nodes.Where(n => State.ClipboardNodes.Any(c => c.Id == n.Id)))
+        {
+            node.Selected = false;
+        }
+
+        // Add wires
+        foreach (var wire in State.ClipboardWires)
+        {
+            var newWire = new FlowWire
+            {
+                SourceId = idMap[wire.SourceId],
+                SourcePort = wire.SourcePort,
+                TargetId = idMap[wire.TargetId],
+                TargetPort = wire.TargetPort,
+                FlowId = State.ActiveFlowId
+            };
+            newWire.Path = CalculateWirePath(newWire);
+            State.Wires.Add(newWire);
+        }
+
+        State.MarkDirty();
+        StateHasChanged();
+    }
+
+    // ============================================================
+    // JS Interop callbacks
+    // ============================================================
+
+    [JSInvokable]
+    public void OnKeyboardShortcut(string action)
+    {
+        switch (action)
+        {
+            case "deleteSelected":
+                DeleteSelected();
+                break;
+            case "selectAll":
+                SelectAll();
+                break;
+            case "copy":
+                CopySelected();
+                break;
+            case "cut":
+                CutSelected();
+                break;
+            case "paste":
+                PasteClipboard();
+                break;
+            case "escape":
+                State.IsDrawingWire = false;
+                State.IsSelecting = false;
+                State.ContextMenuOpen = false;
+                foreach (var n in State.Nodes) n.Selected = false;
+                StateHasChanged();
+                break;
+            case "zoomIn":
+                State.Scale = Math.Min(2.0, State.Scale * 1.1);
+                StateHasChanged();
+                break;
+            case "zoomOut":
+                State.Scale = Math.Max(0.25, State.Scale * 0.9);
+                StateHasChanged();
+                break;
+            case "zoomReset":
+                State.Scale = 1.0;
+                StateHasChanged();
+                break;
+        }
+    }
+
+    [JSInvokable]
+    public void OnModifierKeyUp(string key)
+    {
+        if (key == "shift")
+        {
+            State.IsMultiSelect = false;
+        }
+    }
+
+    [JSInvokable]
+    public void OnCanvasZoom(double scale, double offsetX, double offsetY)
+    {
+        State.Scale = scale;
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void OnNodeDoubleClick(string nodeId)
+    {
+        var node = State.Nodes.FirstOrDefault(n => n.Id == nodeId);
+        if (node != null)
+        {
+            EditNode(node);
+        }
+    }
+
+    [JSInvokable]
+    public void OnContextMenu(string nodeId, double x, double y)
+    {
+        if (!string.IsNullOrEmpty(nodeId))
+        {
+            var node = State.Nodes.FirstOrDefault(n => n.Id == nodeId);
+            if (node != null)
+            {
+                ShowNodeContextMenu(node, new MouseEventArgs { ClientX = x, ClientY = y });
+            }
+        }
+        else
+        {
+            // Canvas context menu
+            State.ContextMenuPosition = new Point((int)x, (int)y);
+            State.ContextMenuItems = new List<ContextMenuItem>
+            {
+                new() { Label = "Paste", Icon = "clipboard", Shortcut = "Ctrl+V", Action = () => PasteClipboard(), Disabled = State.ClipboardNodes.Count == 0 },
+                new() { IsSeparator = true },
+                new() { Label = "Add subflow", Icon = "plus" },
+                new() { Label = "Import", Icon = "download", Shortcut = "Ctrl+I" },
+                new() { Label = "Export", Icon = "upload", Shortcut = "Ctrl+E" }
+            };
+            State.ContextMenuOpen = true;
+            StateHasChanged();
+        }
+    }
+
+    [JSInvokable]
+    public void OnNodeDropped(string type, string label, string color, int inputs, int outputs, int x, int y)
+    {
+        var newNode = new FlowNode
+        {
+            Id = NodeRed.Util.Util.GenerateId(),
+            Type = type,
+            Label = label,
+            FlowId = State.ActiveFlowId,
+            X = x,
+            Y = y,
+            Width = 120,
+            Height = 30,
+            Color = color,
+            Inputs = inputs,
+            Outputs = outputs
+        };
+        State.Nodes.Add(newNode);
+        State.MarkDirty();
+        StateHasChanged();
     }
 }

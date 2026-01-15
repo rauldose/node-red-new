@@ -80,6 +80,35 @@
 
     @* Full screen shade for dialogs *@
     <div id="red-ui-full-shade" class="@(State.ShowShade ? "" : "hide")"></div>
+
+    @* Context menu *@
+    @if (State.ContextMenuOpen)
+    {
+        <div class="red-ui-context-menu" style="left: @(State.ContextMenuPosition.X)px; top: @(State.ContextMenuPosition.Y)px;">
+            @foreach (var item in State.ContextMenuItems)
+            {
+                @if (item.IsSeparator)
+                {
+                    <div class="red-ui-context-menu-separator"></div>
+                }
+                else
+                {
+                    <div class="red-ui-context-menu-item @(item.Disabled ? "disabled" : "")" 
+                         @onclick="() => OnContextMenuItemClick(item)">
+                        @if (!string.IsNullOrEmpty(item.Icon))
+                        {
+                            <i class="fa fa-@item.Icon"></i>
+                        }
+                        <span>@item.Label</span>
+                        @if (!string.IsNullOrEmpty(item.Shortcut))
+                        {
+                            <span class="red-ui-context-menu-shortcut">@item.Shortcut</span>
+                        }
+                    </div>
+                }
+            }
+        </div>
+    }
 </div>
 
 @code {
@@ -143,6 +172,14 @@
     private void ToggleMenu()
     {
         State.MenuOpen = !State.MenuOpen;
+        StateHasChanged();
+    }
+
+    private void OnContextMenuItemClick(ContextMenuItem item)
+    {
+        if (item.Disabled) return;
+        item.Action?.Invoke();
+        State.ContextMenuOpen = false;
         StateHasChanged();
     }
 }
