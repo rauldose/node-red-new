@@ -1,0 +1,248 @@
+@* ============================================================
+   SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/editors/subflow.js
+   ============================================================
+   Subflow editor dialog for creating and editing subflows.
+   ============================================================ *@
+
+@using NodeRed.Editor.Services
+
+<div class="red-ui-dialog-overlay @(Open ? "open" : "")" @onclick="Close"></div>
+
+<div class="red-ui-dialog @(Open ? "open" : "")">
+    <div class="red-ui-dialog-header">
+        <span>@(IsNew ? "Create Subflow" : "Edit Subflow")</span>
+        <button class="red-ui-dialog-close" @onclick="Close">×</button>
+    </div>
+
+    <div class="red-ui-dialog-body">
+        <form>
+            <div class="form-row">
+                <label for="subflow-name">Name</label>
+                <input type="text" id="subflow-name" @bind="Name" placeholder="Subflow name" />
+            </div>
+
+            <div class="form-row">
+                <label for="subflow-category">Category</label>
+                <input type="text" id="subflow-category" @bind="Category" placeholder="subflows" />
+            </div>
+
+            <div class="form-row">
+                <label for="subflow-color">Color</label>
+                <input type="color" id="subflow-color" @bind="Color" />
+            </div>
+
+            <div class="form-row">
+                <label>Inputs</label>
+                <div class="subflow-port-controls">
+                    <button type="button" class="red-ui-button" @onclick="DecrementInputs" disabled="@(Inputs == 0)">−</button>
+                    <span class="subflow-port-count">@Inputs</span>
+                    <button type="button" class="red-ui-button" @onclick="IncrementInputs" disabled="@(Inputs >= 1)">+</button>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <label>Outputs</label>
+                <div class="subflow-port-controls">
+                    <button type="button" class="red-ui-button" @onclick="DecrementOutputs" disabled="@(Outputs == 0)">−</button>
+                    <span class="subflow-port-count">@Outputs</span>
+                    <button type="button" class="red-ui-button" @onclick="IncrementOutputs">+</button>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <label for="subflow-info">Description</label>
+                <textarea id="subflow-info" @bind="Info" rows="4" placeholder="Subflow description..."></textarea>
+            </div>
+
+            @if (EnvVars.Count > 0 || ShowEnvEditor)
+            {
+                <div class="form-row">
+                    <label>Environment Variables</label>
+                    <div class="subflow-env-list">
+                        @foreach (var env in EnvVars)
+                        {
+                            <div class="subflow-env-row">
+                                <input type="text" @bind="env.Name" placeholder="Name" class="subflow-env-name" />
+                                <select @bind="env.Type" class="subflow-env-type">
+                                    <option value="str">String</option>
+                                    <option value="num">Number</option>
+                                    <option value="bool">Boolean</option>
+                                    <option value="json">JSON</option>
+                                    <option value="env">Env Variable</option>
+                                </select>
+                                <input type="text" @bind="env.ValueString" placeholder="Value" class="subflow-env-value" />
+                                <button type="button" class="red-ui-button red-ui-button-small" @onclick="() => RemoveEnvVar(env)">×</button>
+                            </div>
+                        }
+                        <button type="button" class="red-ui-button red-ui-button-small" @onclick="AddEnvVar">+ Add Environment Variable</button>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="form-row">
+                    <button type="button" class="red-ui-button" @onclick="() => ShowEnvEditor = true">Add Environment Variables</button>
+                </div>
+            }
+        </form>
+    </div>
+
+    <div class="red-ui-dialog-footer">
+        @if (!IsNew && OnDelete != null)
+        {
+            <button class="red-ui-button" @onclick="HandleDelete">Delete</button>
+        }
+        <button class="red-ui-button" @onclick="Close">Cancel</button>
+        <button class="red-ui-button red-ui-button-primary" @onclick="HandleSave" disabled="@(string.IsNullOrWhiteSpace(Name))">@(IsNew ? "Create" : "Done")</button>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public bool Open { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    [Parameter]
+    public Subflow? Subflow { get; set; }
+
+    [Parameter]
+    public EventCallback<Subflow> OnSave { get; set; }
+
+    [Parameter]
+    public EventCallback<Subflow>? OnDelete { get; set; }
+
+    private bool IsNew => Subflow == null || string.IsNullOrEmpty(Subflow.Id);
+
+    private string Name { get; set; } = "";
+    private string Category { get; set; } = "subflows";
+    private string Color { get; set; } = "#DDAA99";
+    private string Info { get; set; } = "";
+    private int Inputs { get; set; }
+    private int Outputs { get; set; } = 1;
+    private bool ShowEnvEditor { get; set; }
+    private List<EnvVarViewModel> EnvVars { get; set; } = new();
+
+    protected override void OnParametersSet()
+    {
+        if (Subflow != null)
+        {
+            Name = Subflow.Name;
+            Category = Subflow.Category ?? "subflows";
+            Color = Subflow.Color;
+            Info = Subflow.Info ?? "";
+            Inputs = Subflow.In.Count > 0 ? 1 : 0;
+            Outputs = Subflow.Out.Count;
+            EnvVars = Subflow.Env.Select(e => new EnvVarViewModel
+            {
+                Name = e.Name,
+                Type = e.Type,
+                ValueString = e.Value?.ToString() ?? ""
+            }).ToList();
+            ShowEnvEditor = EnvVars.Count > 0;
+        }
+        else
+        {
+            Name = "";
+            Category = "subflows";
+            Color = "#DDAA99";
+            Info = "";
+            Inputs = 0;
+            Outputs = 1;
+            EnvVars.Clear();
+            ShowEnvEditor = false;
+        }
+    }
+
+    private void IncrementInputs()
+    {
+        if (Inputs < 1) Inputs++;
+    }
+
+    private void DecrementInputs()
+    {
+        if (Inputs > 0) Inputs--;
+    }
+
+    private void IncrementOutputs()
+    {
+        Outputs++;
+    }
+
+    private void DecrementOutputs()
+    {
+        if (Outputs > 0) Outputs--;
+    }
+
+    private void AddEnvVar()
+    {
+        EnvVars.Add(new EnvVarViewModel { Name = "", Type = "str", ValueString = "" });
+    }
+
+    private void RemoveEnvVar(EnvVarViewModel env)
+    {
+        EnvVars.Remove(env);
+    }
+
+    private async Task Close()
+    {
+        await OpenChanged.InvokeAsync(false);
+    }
+
+    private async Task HandleSave()
+    {
+        var subflow = Subflow ?? new Subflow();
+
+        subflow.Name = Name;
+        subflow.Category = Category;
+        subflow.Color = Color;
+        subflow.Info = Info;
+
+        // Update ports
+        subflow.In.Clear();
+        if (Inputs > 0)
+        {
+            subflow.In.Add(new SubflowPort { X = 50, Y = 30 });
+        }
+
+        subflow.Out.Clear();
+        for (int i = 0; i < Outputs; i++)
+        {
+            subflow.Out.Add(new SubflowPort { X = 450, Y = 30 + i * 50 });
+        }
+
+        // Update env vars
+        subflow.Env = EnvVars.Where(e => !string.IsNullOrWhiteSpace(e.Name))
+            .Select(e => new SubflowEnvVar
+            {
+                Name = e.Name,
+                Type = e.Type,
+                Value = e.ValueString
+            }).ToList();
+
+        if (string.IsNullOrEmpty(subflow.Id))
+        {
+            subflow.Id = NodeRed.Util.Util.GenerateId();
+        }
+
+        await OnSave.InvokeAsync(subflow);
+        await Close();
+    }
+
+    private async Task HandleDelete()
+    {
+        if (Subflow != null && OnDelete.HasValue)
+        {
+            await OnDelete.Value.InvokeAsync(Subflow);
+            await Close();
+        }
+    }
+
+    private class EnvVarViewModel
+    {
+        public string Name { get; set; } = "";
+        public string Type { get; set; } = "str";
+        public string ValueString { get; set; } = "";
+    }
+}
