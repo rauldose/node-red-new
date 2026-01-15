@@ -1,0 +1,248 @@
+@* ============================================================
+   SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/clipboard.js
+   LINES: 31-242 (Export dialog implementation)
+   ============================================================
+   Export dialog for exporting flows to JSON.
+   ============================================================ *@
+
+@using NodeRed.Editor.Services
+@inject EditorState State
+@inject IJSRuntime JS
+
+<div class="red-ui-dialog @(IsOpen ? "open" : "")" style="display: @(IsOpen ? "block" : "none")">
+    <div class="red-ui-dialog-overlay" @onclick="Close"></div>
+    <div class="red-ui-dialog-container" style="width: 500px;">
+        <div class="red-ui-dialog-header">
+            <span class="red-ui-dialog-title">Export nodes to clipboard</span>
+            <button class="red-ui-dialog-close" @onclick="Close">
+                <span class="icon-close">×</span>
+            </button>
+        </div>
+        <div class="red-ui-dialog-content">
+            <div class="red-ui-export-content">
+                <div class="red-ui-export-options">
+                    <div class="red-ui-export-scope">
+                        <label>Export:</label>
+                        <div class="red-ui-export-option">
+                            <input type="radio" id="export-selected" name="export-scope" value="selected"
+                                   checked="@(ExportScope == "selected")"
+                                   @onchange="@(() => UpdateExportScope("selected"))"
+                                   disabled="@(!HasSelection)" />
+                            <label for="export-selected" class="@(!HasSelection ? "disabled" : "")">
+                                selected nodes (@SelectedCount)
+                            </label>
+                        </div>
+                        <div class="red-ui-export-option">
+                            <input type="radio" id="export-flow" name="export-scope" value="flow"
+                                   checked="@(ExportScope == "flow")"
+                                   @onchange="@(() => UpdateExportScope("flow"))" />
+                            <label for="export-flow">current flow</label>
+                        </div>
+                        <div class="red-ui-export-option">
+                            <input type="radio" id="export-all" name="export-scope" value="all"
+                                   checked="@(ExportScope == "all")"
+                                   @onchange="@(() => UpdateExportScope("all"))" />
+                            <label for="export-all">all flows</label>
+                        </div>
+                    </div>
+                    <div class="red-ui-export-format">
+                        <label>Format:</label>
+                        <div class="red-ui-export-option">
+                            <input type="radio" id="export-compact" name="export-format" value="compact"
+                                   checked="@(ExportFormat == "compact")"
+                                   @onchange="@(() => UpdateExportFormat("compact"))" />
+                            <label for="export-compact">compact</label>
+                        </div>
+                        <div class="red-ui-export-option">
+                            <input type="radio" id="export-pretty" name="export-format" value="pretty"
+                                   checked="@(ExportFormat == "pretty")"
+                                   @onchange="@(() => UpdateExportFormat("pretty"))" />
+                            <label for="export-pretty">formatted</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="red-ui-export-text-row">
+                    <textarea 
+                        readonly
+                        class="red-ui-export-textarea"
+                        @ref="_exportTextArea"
+                        rows="12">@ExportText</textarea>
+                </div>
+            </div>
+        </div>
+        <div class="red-ui-dialog-footer">
+            <button class="red-ui-button" @onclick="Close">Close</button>
+            <button class="red-ui-button" @onclick="DownloadAsync">
+                <span class="icon-download">↓</span> Download
+            </button>
+            <button class="red-ui-button red-ui-button-primary" @onclick="CopyToClipboardAsync">
+                <span class="icon-copy">📋</span> Copy to clipboard
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public bool IsOpen { get; set; }
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    private string ExportScope { get; set; } = "flow";
+    private string ExportFormat { get; set; } = "compact";
+    private string ExportText { get; set; } = "";
+    private ElementReference _exportTextArea;
+
+    private bool HasSelection => State.SelectedNodes.Any();
+    private int SelectedCount => State.SelectedNodes.Count();
+
+    protected override void OnParametersSet()
+    {
+        if (IsOpen)
+        {
+            // Default to selected if there are selected nodes, otherwise flow
+            if (HasSelection)
+            {
+                ExportScope = "selected";
+            }
+            else
+            {
+                ExportScope = "flow";
+            }
+            GenerateExportText();
+        }
+    }
+
+    private void UpdateExportScope(string scope)
+    {
+        ExportScope = scope;
+        GenerateExportText();
+    }
+
+    private void UpdateExportFormat(string format)
+    {
+        ExportFormat = format;
+        GenerateExportText();
+    }
+
+    private void GenerateExportText()
+    {
+        var nodesToExport = ExportScope switch
+        {
+            "selected" => State.SelectedNodes.ToList(),
+            "flow" => State.Nodes.Where(n => n.FlowId == State.ActiveFlowId).ToList(),
+            "all" => State.Nodes.ToList(),
+            _ => new List<FlowNode>()
+        };
+
+        var flowsData = new List<Dictionary<string, object>>();
+
+        // Add flow tabs if exporting all or current flow
+        if (ExportScope == "all")
+        {
+            foreach (var flow in State.Flows)
+            {
+                flowsData.Add(new Dictionary<string, object>
+                {
+                    ["id"] = flow.Id,
+                    ["type"] = "tab",
+                    ["label"] = flow.Label
+                });
+            }
+        }
+        else if (ExportScope == "flow")
+        {
+            var currentFlow = State.Flows.FirstOrDefault(f => f.Id == State.ActiveFlowId);
+            if (currentFlow is not null)
+            {
+                flowsData.Add(new Dictionary<string, object>
+                {
+                    ["id"] = currentFlow.Id,
+                    ["type"] = "tab",
+                    ["label"] = currentFlow.Label
+                });
+            }
+        }
+
+        // Add nodes
+        foreach (var node in nodesToExport)
+        {
+            var nodeData = new Dictionary<string, object>
+            {
+                ["id"] = node.Id,
+                ["type"] = node.Type,
+                ["z"] = node.FlowId,
+                ["name"] = node.Name ?? "",
+                ["x"] = node.X,
+                ["y"] = node.Y
+            };
+
+            // Add wires
+            var wires = new List<List<string>>();
+            for (int i = 0; i < node.Outputs; i++)
+            {
+                var outputWires = State.Wires
+                    .Where(w => w.SourceId == node.Id && w.SourcePort == i)
+                    .Select(w => w.TargetId)
+                    .ToList();
+                wires.Add(outputWires);
+            }
+            nodeData["wires"] = wires;
+
+            flowsData.Add(nodeData);
+        }
+
+        var options = new System.Text.Json.JsonSerializerOptions
+        {
+            WriteIndented = ExportFormat == "pretty"
+        };
+        ExportText = System.Text.Json.JsonSerializer.Serialize(flowsData, options);
+    }
+
+    private async Task Close()
+    {
+        await OnClose.InvokeAsync();
+    }
+
+    private async Task CopyToClipboardAsync()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", ExportText);
+        }
+        catch
+        {
+            // Fallback or error handling
+        }
+    }
+
+    private async Task DownloadAsync()
+    {
+        try
+        {
+            var fileName = ExportScope switch
+            {
+                "selected" => "flows-selection.json",
+                "flow" => $"flow-{State.ActiveFlowId}.json",
+                _ => "flows.json"
+            };
+
+            await JS.InvokeVoidAsync("eval", $@"
+                var blob = new Blob([{System.Text.Json.JsonSerializer.Serialize(ExportText)}], {{type: 'application/json'}});
+                var url = URL.createObjectURL(blob);
+                var a = document.createElement('a');
+                a.href = url;
+                a.download = '{fileName}';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            ");
+        }
+        catch
+        {
+            // Error handling
+        }
+    }
+}

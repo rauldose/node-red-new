@@ -1697,3 +1697,452 @@ g.red-ui-flow-node-selected .red-ui-flow-node {
     z-index: 10000;
     opacity: 0.8;
 }
+
+/* ============================================================
+   Dialog Styles (from dialog.scss)
+   ============================================================ */
+.red-ui-dialog {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+}
+
+.red-ui-dialog.open {
+    display: block;
+}
+
+.red-ui-dialog-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.red-ui-dialog-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--red-ui-secondary-background);
+    border-radius: 4px;
+    box-shadow: 0 4px 20px var(--red-ui-shadow);
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.red-ui-dialog-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 15px;
+    border-bottom: 1px solid var(--red-ui-secondary-border-color);
+    background: var(--red-ui-tertiary-background);
+    border-radius: 4px 4px 0 0;
+}
+
+.red-ui-dialog-title {
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--red-ui-primary-text-color);
+}
+
+.red-ui-dialog-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    color: var(--red-ui-tertiary-text-color);
+    padding: 0;
+    line-height: 1;
+}
+
+.red-ui-dialog-close:hover {
+    color: var(--red-ui-primary-text-color);
+}
+
+.red-ui-dialog-content {
+    padding: 15px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.red-ui-dialog-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 10px 15px;
+    border-top: 1px solid var(--red-ui-secondary-border-color);
+    background: var(--red-ui-tertiary-background);
+    border-radius: 0 0 4px 4px;
+}
+
+/* ============================================================
+   Import Dialog Styles
+   ============================================================ */
+.red-ui-import-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.red-ui-import-text-row label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 13px;
+    color: var(--red-ui-secondary-text-color);
+}
+
+.red-ui-import-textarea,
+.red-ui-export-textarea {
+    width: 100%;
+    font-family: var(--red-ui-monospace-font);
+    font-size: 12px;
+    border: 1px solid var(--red-ui-form-input-border-color);
+    border-radius: 3px;
+    padding: 8px;
+    resize: vertical;
+    box-sizing: border-box;
+}
+
+.red-ui-import-textarea:focus,
+.red-ui-export-textarea:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--red-ui-form-input-focus-color);
+}
+
+.red-ui-import-file-row {
+    display: flex;
+    align-items: center;
+}
+
+.red-ui-import-options {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.red-ui-import-options > label {
+    font-weight: 500;
+    font-size: 13px;
+    color: var(--red-ui-primary-text-color);
+}
+
+.red-ui-import-option,
+.red-ui-export-option {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+}
+
+.red-ui-import-option input[type="radio"],
+.red-ui-export-option input[type="radio"] {
+    margin: 0;
+}
+
+.red-ui-import-error {
+    background: rgba(214, 97, 95, 0.1);
+    border: 1px solid var(--red-ui-border-color-error);
+    border-radius: 3px;
+    padding: 8px 10px;
+    color: var(--red-ui-text-color-error);
+    font-size: 13px;
+}
+
+/* ============================================================
+   Export Dialog Styles
+   ============================================================ */
+.red-ui-export-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.red-ui-export-options {
+    display: flex;
+    gap: 30px;
+}
+
+.red-ui-export-scope,
+.red-ui-export-format {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.red-ui-export-scope > label,
+.red-ui-export-format > label {
+    font-weight: 500;
+    font-size: 13px;
+    color: var(--red-ui-primary-text-color);
+}
+
+.red-ui-export-option label.disabled {
+    color: var(--red-ui-secondary-text-color-disabled);
+}
+
+/* ============================================================
+   Search Dialog Styles (from search.scss)
+   ============================================================ */
+.red-ui-search {
+    position: fixed;
+    top: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9998;
+    width: 500px;
+}
+
+.red-ui-search-container {
+    background: var(--red-ui-secondary-background);
+    border-radius: 4px;
+    box-shadow: 0 4px 20px var(--red-ui-shadow);
+    overflow: hidden;
+}
+
+.red-ui-search-header {
+    display: flex;
+    align-items: center;
+    padding: 0;
+    border-bottom: 1px solid var(--red-ui-secondary-border-color);
+}
+
+.red-ui-search-input {
+    flex: 1;
+    border: none;
+    padding: 12px 15px;
+    font-size: 14px;
+    outline: none;
+}
+
+.red-ui-search-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    color: var(--red-ui-tertiary-text-color);
+    padding: 10px 15px;
+}
+
+.red-ui-search-close:hover {
+    color: var(--red-ui-primary-text-color);
+}
+
+.red-ui-search-results {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.red-ui-search-empty {
+    padding: 20px;
+    text-align: center;
+    color: var(--red-ui-secondary-text-color);
+    font-size: 13px;
+}
+
+.red-ui-search-result {
+    display: flex;
+    align-items: center;
+    padding: 8px 15px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--red-ui-secondary-border-color);
+}
+
+.red-ui-search-result:hover {
+    background: var(--red-ui-secondary-background-hover);
+}
+
+.red-ui-search-result.selected {
+    background: var(--red-ui-secondary-background-selected);
+}
+
+.red-ui-search-result-node {
+    width: 30px;
+    height: 24px;
+    border-radius: 3px;
+    border: 1px solid #999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    font-size: 12px;
+}
+
+.red-ui-search-result-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.red-ui-search-result-label {
+    font-size: 13px;
+    color: var(--red-ui-primary-text-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.red-ui-search-result-type {
+    font-size: 11px;
+    color: var(--red-ui-secondary-text-color);
+}
+
+.red-ui-search-result-flow {
+    margin-left: 8px;
+    color: var(--red-ui-tertiary-text-color);
+}
+
+.red-ui-search-highlight {
+    background: #ff0;
+    font-weight: 500;
+}
+
+.red-ui-search-more {
+    padding: 10px 15px;
+    text-align: center;
+    color: var(--red-ui-tertiary-text-color);
+    font-size: 12px;
+}
+
+/* ============================================================
+   Menu Styles (from menu.scss)
+   ============================================================ */
+.red-ui-menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9997;
+}
+
+.red-ui-menu-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.red-ui-menu-container {
+    position: absolute;
+    top: var(--red-ui-header-height);
+    right: 0;
+    background: var(--red-ui-secondary-background);
+    border: 1px solid var(--red-ui-secondary-border-color);
+    box-shadow: 0 2px 10px var(--red-ui-shadow);
+    min-width: 250px;
+}
+
+.red-ui-menu-group {
+    border-bottom: 1px solid var(--red-ui-secondary-border-color);
+    padding: 5px 0;
+}
+
+.red-ui-menu-group:last-child {
+    border-bottom: none;
+}
+
+.red-ui-menu-label {
+    padding: 5px 15px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--red-ui-secondary-text-color);
+    text-transform: uppercase;
+}
+
+.red-ui-menu-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 15px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--red-ui-primary-text-color);
+}
+
+.red-ui-menu-item:hover {
+    background: var(--red-ui-secondary-background-hover);
+}
+
+.red-ui-menu-item.red-ui-menu-item-danger:hover {
+    background: rgba(214, 97, 95, 0.1);
+    color: var(--red-ui-text-color-error);
+}
+
+.red-ui-menu-check {
+    width: 20px;
+    text-align: center;
+    color: var(--red-ui-header-menu-color);
+}
+
+.red-ui-menu-icon {
+    width: 24px;
+    text-align: center;
+}
+
+.red-ui-menu-shortcut {
+    margin-left: auto;
+    color: var(--red-ui-tertiary-text-color);
+    font-size: 11px;
+}
+
+.red-ui-menu-separator {
+    height: 1px;
+    background: var(--red-ui-secondary-border-color);
+    margin: 5px 0;
+}
+
+/* ============================================================
+   Keyboard Shortcuts Dialog Styles
+   ============================================================ */
+.red-ui-keyboard-shortcuts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.red-ui-keyboard-section {
+    flex: 1;
+    min-width: 200px;
+}
+
+.red-ui-keyboard-section h4 {
+    margin: 0 0 10px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--red-ui-primary-text-color);
+    border-bottom: 1px solid var(--red-ui-secondary-border-color);
+    padding-bottom: 5px;
+}
+
+.red-ui-keyboard-shortcut {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    font-size: 13px;
+}
+
+.red-ui-keyboard-keys {
+    display: flex;
+    gap: 4px;
+}
+
+.red-ui-keyboard-keys kbd {
+    background: var(--red-ui-tertiary-background);
+    border: 1px solid var(--red-ui-secondary-border-color);
+    border-radius: 3px;
+    padding: 2px 6px;
+    font-family: var(--red-ui-monospace-font);
+    font-size: 11px;
+    color: var(--red-ui-primary-text-color);
+}
+
+.red-ui-keyboard-action {
+    color: var(--red-ui-secondary-text-color);
+}

@@ -18,10 +18,11 @@
    ============================================================ *@
 
 @using NodeRed.Editor.Services
+@using NodeRed.Editor.Components.Editor.Dialogs
 @inject EditorState State
 @inject IJSRuntime JS
 
-<div id="red-ui-editor" class="red-ui-editor">
+<div id="red-ui-editor" class="red-ui-editor" @onkeydown="OnKeyDown" tabindex="0">
     <div id="red-ui-header">
         <span class="red-ui-header-logo">
             <span>Node-RED.NET</span>
@@ -109,9 +110,40 @@
             }
         </div>
     }
+
+    @* Main Menu *@
+    <Menu IsOpen="@_menuOpen" 
+          OnClose="CloseMenu"
+          OnOpenImport="OpenImport"
+          OnOpenExport="OpenExport"
+          OnOpenSearch="OpenSearch"
+          OnOpenConfigNodes="OpenConfigNodes"
+          OnShowKeyboardShortcuts="ShowKeyboardShortcuts" />
+
+    @* Dialogs *@
+    <ImportDialog IsOpen="@_importOpen" 
+                  OnClose="CloseImport"
+                  OnImport="HandleImport" />
+    
+    <ExportDialog IsOpen="@_exportOpen" 
+                  OnClose="CloseExport" />
+    
+    <SearchDialog IsOpen="@_searchOpen"
+                  OnClose="CloseSearch"
+                  OnGoToNode="GoToNode" />
+    
+    <KeyboardShortcutsDialog IsOpen="@_shortcutsOpen"
+                             OnClose="CloseShortcuts" />
 </div>
 
 @code {
+    // Dialog state
+    private bool _menuOpen;
+    private bool _importOpen;
+    private bool _exportOpen;
+    private bool _searchOpen;
+    private bool _shortcutsOpen;
+
     // ============================================================
     // ORIGINAL CODE (red.js lines 931-956):
     // ------------------------------------------------------------
@@ -171,7 +203,13 @@
 
     private void ToggleMenu()
     {
-        State.MenuOpen = !State.MenuOpen;
+        _menuOpen = !_menuOpen;
+        StateHasChanged();
+    }
+
+    private void CloseMenu()
+    {
+        _menuOpen = false;
         StateHasChanged();
     }
 
@@ -181,5 +219,223 @@
         item.Action?.Invoke();
         State.ContextMenuOpen = false;
         StateHasChanged();
+    }
+
+    // Keyboard shortcuts handler
+    private void OnKeyDown(KeyboardEventArgs e)
+    {
+        if (e.CtrlKey)
+        {
+            switch (e.Key.ToLowerInvariant())
+            {
+                case "f":
+                    OpenSearch();
+                    break;
+                case "i":
+                    OpenImport();
+                    break;
+                case "e":
+                    OpenExport();
+                    break;
+                case "d":
+                    _ = DeployAsync();
+                    break;
+                case "=":
+                    State.Scale = Math.Min(2.0, State.Scale + 0.1);
+                    StateHasChanged();
+                    break;
+                case "-":
+                    State.Scale = Math.Max(0.25, State.Scale - 0.1);
+                    StateHasChanged();
+                    break;
+                case "0":
+                    State.Scale = 1.0;
+                    StateHasChanged();
+                    break;
+                case "a":
+                    // Select all nodes in current flow
+                    foreach (var node in State.Nodes.Where(n => n.FlowId == State.ActiveFlowId))
+                    {
+                        node.Selected = true;
+                    }
+                    StateHasChanged();
+                    break;
+            }
+
+            if (e.ShiftKey && e.Key.ToLowerInvariant() == "p")
+            {
+                State.PaletteOpen = !State.PaletteOpen;
+                StateHasChanged();
+            }
+            if (e.Key == " ")
+            {
+                State.SidebarOpen = !State.SidebarOpen;
+                StateHasChanged();
+            }
+            if (e.Key == "?")
+            {
+                ShowKeyboardShortcuts();
+            }
+        }
+
+        if (e.Key == "Escape")
+        {
+            // Clear selection
+            foreach (var node in State.Nodes)
+            {
+                node.Selected = false;
+            }
+            State.ContextMenuOpen = false;
+            CloseAllDialogs();
+            StateHasChanged();
+        }
+
+        if (e.Key == "Delete" || e.Key == "Backspace")
+        {
+            // Delete selected nodes
+            var selectedNodes = State.SelectedNodes.ToList();
+            foreach (var node in selectedNodes)
+            {
+                State.Wires.RemoveAll(w => w.SourceId == node.Id || w.TargetId == node.Id);
+                State.Nodes.Remove(node);
+            }
+            if (selectedNodes.Any())
+            {
+                State.MarkDirty();
+                StateHasChanged();
+            }
+        }
+    }
+
+    private void OpenImport()
+    {
+        _importOpen = true;
+        State.ShowShade = true;
+        StateHasChanged();
+    }
+
+    private void CloseImport()
+    {
+        _importOpen = false;
+        State.ShowShade = false;
+        StateHasChanged();
+    }
+
+    private void OpenExport()
+    {
+        _exportOpen = true;
+        State.ShowShade = true;
+        StateHasChanged();
+    }
+
+    private void CloseExport()
+    {
+        _exportOpen = false;
+        State.ShowShade = false;
+        StateHasChanged();
+    }
+
+    private void OpenSearch()
+    {
+        _searchOpen = true;
+        StateHasChanged();
+    }
+
+    private void CloseSearch()
+    {
+        _searchOpen = false;
+        StateHasChanged();
+    }
+
+    private void OpenConfigNodes()
+    {
+        // Switch sidebar to config tab
+        // This would set sidebar active tab to "config"
+        State.SidebarOpen = true;
+        StateHasChanged();
+    }
+
+    private void ShowKeyboardShortcuts()
+    {
+        _shortcutsOpen = true;
+        State.ShowShade = true;
+        StateHasChanged();
+    }
+
+    private void CloseShortcuts()
+    {
+        _shortcutsOpen = false;
+        State.ShowShade = false;
+        StateHasChanged();
+    }
+
+    private void CloseAllDialogs()
+    {
+        _menuOpen = false;
+        _importOpen = false;
+        _exportOpen = false;
+        _searchOpen = false;
+        _shortcutsOpen = false;
+        State.ShowShade = false;
+    }
+
+    private void HandleImport(List<Dictionary<string, object>> flows)
+    {
+        // Import the flows into the editor state
+        // For now, we'll add to current flow
+        foreach (var flowData in flows)
+        {
+            if (flowData.TryGetValue("type", out var type) && type?.ToString() != "tab")
+            {
+                var node = new FlowNode
+                {
+                    Id = NodeRed.Util.Util.GenerateId(), // Generate new ID
+                    Type = type?.ToString() ?? "unknown",
+                    Name = flowData.GetValueOrDefault("name")?.ToString(),
+                    FlowId = State.ActiveFlowId,
+                    X = GetInt(flowData, "x", 100) + 50, // Offset to avoid overlap
+                    Y = GetInt(flowData, "y", 100) + 50,
+                    Width = 120,
+                    Height = 30
+                };
+                State.Nodes.Add(node);
+            }
+        }
+        State.MarkDirty();
+        StateHasChanged();
+    }
+
+    private void GoToNode(SearchResult result)
+    {
+        if (result.IsFlow)
+        {
+            State.ActiveFlowId = result.FlowId;
+        }
+        else
+        {
+            // Switch to the flow containing the node
+            State.ActiveFlowId = result.FlowId;
+            
+            // Select the node
+            foreach (var node in State.Nodes)
+            {
+                node.Selected = node.Id == result.NodeId;
+            }
+            
+            // TODO: Scroll to center the node
+        }
+        StateHasChanged();
+    }
+
+    private static int GetInt(Dictionary<string, object> data, string key, int defaultValue)
+    {
+        if (data.TryGetValue(key, out var value))
+        {
+            if (value is int i) return i;
+            if (value is long l) return (int)l;
+            if (value is double d) return (int)d;
+            if (int.TryParse(value?.ToString(), out var parsed)) return parsed;
+        }
+        return defaultValue;
     }
 }

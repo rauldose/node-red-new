@@ -660,3 +660,17 @@ public class EditorAction
     public Dictionary<string, object>? Before { get; set; }
     public Dictionary<string, object>? After { get; set; }
 }
+
+// ============================================================
+// SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/search.js
+// ============================================================
+public class SearchResult
+{
+    public string NodeId { get; set; } = "";
+    public string Type { get; set; } = "";
+    public string Label { get; set; } = "";
+    public string Color { get; set; } = "#ddd";
+    public string FlowId { get; set; } = "";
+    public string FlowLabel { get; set; } = "";
+    public bool IsFlow { get; set; }
+}

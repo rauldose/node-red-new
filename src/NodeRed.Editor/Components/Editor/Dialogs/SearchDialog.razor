@@ -1,0 +1,235 @@
+@* ============================================================
+   SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/search.js
+   ============================================================
+   Search dialog for finding nodes in flows.
+   ============================================================ *@
+
+@using NodeRed.Editor.Services
+@inject EditorState State
+
+<div class="red-ui-search @(IsOpen ? "open" : "")" style="display: @(IsOpen ? "block" : "none")">
+    <div class="red-ui-search-container">
+        <div class="red-ui-search-header">
+            <input type="text" 
+                   value="@SearchQuery"
+                   @oninput="OnSearchInput"
+                   @onkeydown="OnKeyDown"
+                   class="red-ui-search-input"
+                   placeholder="Search flows..."
+                   autofocus />
+            <button class="red-ui-search-close" @onclick="Close">
+                <span class="icon-close">×</span>
+            </button>
+        </div>
+        <div class="red-ui-search-results">
+            @if (string.IsNullOrWhiteSpace(SearchQuery))
+            {
+                <div class="red-ui-search-empty">
+                    Type to search for nodes, flows, or configuration
+                </div>
+            }
+            else if (!SearchResults.Any())
+            {
+                <div class="red-ui-search-empty">
+                    No results found for "@SearchQuery"
+                </div>
+            }
+            else
+            {
+                @foreach (var result in SearchResults.Take(20))
+                {
+                    <div class="red-ui-search-result @(result == SelectedResult ? "selected" : "")"
+                         @onclick="() => SelectResult(result)"
+                         @ondblclick="() => GoToResult(result)">
+                        <div class="red-ui-search-result-node" style="background-color: @result.Color;">
+                            <span class="red-ui-search-result-icon">@GetIcon(result.Type)</span>
+                        </div>
+                        <div class="red-ui-search-result-info">
+                            <div class="red-ui-search-result-label">
+                                @HighlightMatch(result.Label ?? result.Type)
+                            </div>
+                            <div class="red-ui-search-result-type">
+                                <span>@result.Type</span>
+                                @if (!string.IsNullOrEmpty(result.FlowLabel))
+                                {
+                                    <span class="red-ui-search-result-flow">in @result.FlowLabel</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+                @if (SearchResults.Count > 20)
+                {
+                    <div class="red-ui-search-more">
+                        ... and @(SearchResults.Count - 20) more results
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public bool IsOpen { get; set; }
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    [Parameter]
+    public EventCallback<SearchResult> OnGoToNode { get; set; }
+
+    private string SearchQuery { get; set; } = "";
+    private List<SearchResult> SearchResults { get; set; } = new();
+    private SearchResult? SelectedResult { get; set; }
+    private int SelectedIndex { get; set; } = -1;
+
+    private void OnSearchInput(ChangeEventArgs e)
+    {
+        SearchQuery = e.Value?.ToString() ?? "";
+        PerformSearch();
+    }
+
+    private void PerformSearch()
+    {
+        if (string.IsNullOrWhiteSpace(SearchQuery))
+        {
+            SearchResults.Clear();
+            SelectedResult = null;
+            SelectedIndex = -1;
+            return;
+        }
+
+        var query = SearchQuery.ToLowerInvariant();
+        SearchResults = State.Nodes
+            .Where(n => 
+                n.Type.ToLowerInvariant().Contains(query) ||
+                (n.Name?.ToLowerInvariant().Contains(query) ?? false) ||
+                (n.Label?.ToLowerInvariant().Contains(query) ?? false))
+            .Select(n => new SearchResult
+            {
+                NodeId = n.Id,
+                Type = n.Type,
+                Label = n.Name ?? n.Label ?? n.Type,
+                Color = n.Color,
+                FlowId = n.FlowId,
+                FlowLabel = State.Flows.FirstOrDefault(f => f.Id == n.FlowId)?.Label ?? ""
+            })
+            .ToList();
+
+        // Also search flows
+        var flowResults = State.Flows
+            .Where(f => f.Label.ToLowerInvariant().Contains(query))
+            .Select(f => new SearchResult
+            {
+                NodeId = f.Id,
+                Type = "tab",
+                Label = f.Label,
+                Color = "#c0c0c0",
+                FlowId = f.Id,
+                FlowLabel = "",
+                IsFlow = true
+            });
+
+        SearchResults.AddRange(flowResults);
+
+        if (SearchResults.Any())
+        {
+            SelectedIndex = 0;
+            SelectedResult = SearchResults[0];
+        }
+        else
+        {
+            SelectedIndex = -1;
+            SelectedResult = null;
+        }
+    }
+
+    private void OnKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape")
+        {
+            Close();
+        }
+        else if (e.Key == "ArrowDown")
+        {
+            if (SelectedIndex < SearchResults.Count - 1)
+            {
+                SelectedIndex++;
+                SelectedResult = SearchResults[SelectedIndex];
+            }
+        }
+        else if (e.Key == "ArrowUp")
+        {
+            if (SelectedIndex > 0)
+            {
+                SelectedIndex--;
+                SelectedResult = SearchResults[SelectedIndex];
+            }
+        }
+        else if (e.Key == "Enter" && SelectedResult is not null)
+        {
+            GoToResult(SelectedResult);
+        }
+    }
+
+    private void SelectResult(SearchResult result)
+    {
+        SelectedResult = result;
+        SelectedIndex = SearchResults.IndexOf(result);
+    }
+
+    private async void GoToResult(SearchResult result)
+    {
+        await OnGoToNode.InvokeAsync(result);
+        await Close();
+    }
+
+    private async Task Close()
+    {
+        SearchQuery = "";
+        SearchResults.Clear();
+        SelectedResult = null;
+        await OnClose.InvokeAsync();
+    }
+
+    private string GetIcon(string type)
+    {
+        return type switch
+        {
+            "inject" => "▶",
+            "debug" => "🐛",
+            "function" => "ƒ",
+            "switch" => "⑂",
+            "change" => "✎",
+            "template" => "📄",
+            "http in" or "http response" or "http request" => "🌐",
+            "mqtt in" or "mqtt out" => "📡",
+            "file" or "file in" => "📁",
+            "tab" => "📑",
+            _ => "◯"
+        };
+    }
+
+    private MarkupString HighlightMatch(string text)
+    {
+        if (string.IsNullOrWhiteSpace(SearchQuery))
+        {
+            return new MarkupString(System.Web.HttpUtility.HtmlEncode(text));
+        }
+
+        var query = SearchQuery.ToLowerInvariant();
+        var index = text.ToLowerInvariant().IndexOf(query);
+        
+        if (index < 0)
+        {
+            return new MarkupString(System.Web.HttpUtility.HtmlEncode(text));
+        }
+
+        var before = System.Web.HttpUtility.HtmlEncode(text[..index]);
+        var match = System.Web.HttpUtility.HtmlEncode(text.Substring(index, SearchQuery.Length));
+        var after = System.Web.HttpUtility.HtmlEncode(text[(index + SearchQuery.Length)..]);
+
+        return new MarkupString($"{before}<span class=\"red-ui-search-highlight\">{match}</span>{after}");
+    }
+}
