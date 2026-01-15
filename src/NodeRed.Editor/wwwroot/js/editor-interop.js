@@ -257,22 +257,16 @@ window.nodeRedEditor = {
             const y = e.clientY - rect.top;
             
             const targetNode = e.target.closest('.red-ui-workspace-node');
-            console.log('Context menu, node:', targetNode?.dataset.nodeId || 'canvas');
             dotNetRef.invokeMethodAsync('OnContextMenu', 
-                targetNode?.dataset.nodeId || '', x, y)
-                .then(() => console.log('OnContextMenu succeeded'))
-                .catch(err => console.error('OnContextMenu failed:', err));
+                targetNode?.dataset.nodeId || '', x, y);
         });
 
         // Double-click handling
         canvasElement.addEventListener('dblclick', function(e) {
             const targetNode = e.target.closest('.red-ui-workspace-node');
             if (targetNode) {
-                console.log('Double-click on node:', targetNode.dataset.nodeId);
                 dotNetRef.invokeMethodAsync('OnNodeDoubleClick', 
-                    targetNode.dataset.nodeId || '')
-                    .then(() => console.log('OnNodeDoubleClick succeeded'))
-                    .catch(err => console.error('OnNodeDoubleClick failed:', err));
+                    targetNode.dataset.nodeId || '');
             }
         });
     },

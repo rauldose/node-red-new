@@ -490,40 +490,6 @@
         StateHasChanged();
     }
 
-    private void OnDragOver()
-    {
-        // Allow drop
-    }
-
-    private void OnDrop()
-    {
-        if (State.DraggedNode is not null)
-        {
-            // Snap to grid
-            var x = (State.DropPosition.X / 20) * 20;
-            var y = (State.DropPosition.Y / 20) * 20;
-
-            var newNode = new FlowNode
-            {
-                Id = NodeRed.Util.Util.GenerateId(),
-                Type = State.DraggedNode.Type,
-                Label = State.DraggedNode.Label ?? State.DraggedNode.Type,
-                FlowId = State.ActiveFlowId,
-                X = x,
-                Y = y,
-                Width = 120,
-                Height = 30,
-                Color = State.DraggedNode.Color,
-                Inputs = State.DraggedNode.Inputs,
-                Outputs = State.DraggedNode.Outputs
-            };
-            State.Nodes.Add(newNode);
-            State.DraggedNode = null;
-            State.MarkDirty();
-            StateHasChanged();
-        }
-    }
-
     private void ShowNodeContextMenu(FlowNode node, MouseEventArgs e)
     {
         State.ContextMenuPosition = new Point((int)e.ClientX, (int)e.ClientY);
