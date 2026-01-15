@@ -876,10 +876,16 @@
         {
             if (!shiftKey && !ctrlKey)
             {
+                // Single click without modifiers - deselect all and select this node
                 foreach (var n in State.Nodes) n.Selected = false;
                 foreach (var w in State.Wires) w.Selected = false;
+                node.Selected = true;
             }
-            node.Selected = !node.Selected || (!shiftKey && !ctrlKey);
+            else
+            {
+                // Shift or Ctrl click - toggle selection
+                node.Selected = !node.Selected;
+            }
             StateHasChanged();
         }
     }

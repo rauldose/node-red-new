@@ -14,28 +14,28 @@
         <div class="red-ui-menu-group">
             <div class="red-ui-menu-label">View</div>
             <div class="red-ui-menu-item" @onclick="TogglePalette">
-                <span class="red-ui-menu-check">@(State.PaletteOpen ? "✓" : "")</span>
+                <span class="red-ui-menu-check">@(State.PaletteOpen ? "" : "")<i class="fa @(State.PaletteOpen ? "fa-check" : "")"></i></span>
                 <span>Show palette</span>
                 <span class="red-ui-menu-shortcut">Ctrl+Shift+P</span>
             </div>
             <div class="red-ui-menu-item" @onclick="ToggleSidebar">
-                <span class="red-ui-menu-check">@(State.SidebarOpen ? "✓" : "")</span>
+                <span class="red-ui-menu-check"><i class="fa @(State.SidebarOpen ? "fa-check" : "")"></i></span>
                 <span>Show sidebar</span>
                 <span class="red-ui-menu-shortcut">Ctrl+Space</span>
             </div>
             <div class="red-ui-menu-separator"></div>
             <div class="red-ui-menu-item" @onclick="ZoomIn">
-                <span class="red-ui-menu-icon">🔍+</span>
+                <span class="red-ui-menu-icon"><i class="fa fa-search-plus"></i></span>
                 <span>Zoom in</span>
                 <span class="red-ui-menu-shortcut">Ctrl+=</span>
             </div>
             <div class="red-ui-menu-item" @onclick="ZoomOut">
-                <span class="red-ui-menu-icon">🔍-</span>
+                <span class="red-ui-menu-icon"><i class="fa fa-search-minus"></i></span>
                 <span>Zoom out</span>
                 <span class="red-ui-menu-shortcut">Ctrl+-</span>
             </div>
             <div class="red-ui-menu-item" @onclick="ZoomReset">
-                <span class="red-ui-menu-icon">🔍</span>
+                <span class="red-ui-menu-icon"><i class="fa fa-search"></i></span>
                 <span>Reset zoom</span>
                 <span class="red-ui-menu-shortcut">Ctrl+0</span>
             </div>
@@ -45,12 +45,12 @@
         <div class="red-ui-menu-group">
             <div class="red-ui-menu-label">Import / Export</div>
             <div class="red-ui-menu-item" @onclick="OpenImport">
-                <span class="red-ui-menu-icon">↓</span>
+                <span class="red-ui-menu-icon"><i class="fa fa-download"></i></span>
                 <span>Import</span>
                 <span class="red-ui-menu-shortcut">Ctrl+I</span>
             </div>
             <div class="red-ui-menu-item" @onclick="OpenExport">
-                <span class="red-ui-menu-icon">↑</span>
+                <span class="red-ui-menu-icon"><i class="fa fa-upload"></i></span>
                 <span>Export</span>
                 <span class="red-ui-menu-shortcut">Ctrl+E</span>
             </div>
@@ -60,7 +60,7 @@
         <div class="red-ui-menu-group">
             <div class="red-ui-menu-label">Search</div>
             <div class="red-ui-menu-item" @onclick="OpenSearch">
-                <span class="red-ui-menu-icon">🔎</span>
+                <span class="red-ui-menu-icon"><i class="fa fa-search"></i></span>
                 <span>Search flows</span>
                 <span class="red-ui-menu-shortcut">Ctrl+F</span>
             </div>
@@ -70,7 +70,7 @@
         <div class="red-ui-menu-group">
             <div class="red-ui-menu-label">Configuration nodes</div>
             <div class="red-ui-menu-item" @onclick="OpenConfigNodes">
-                <span class="red-ui-menu-icon">⚙</span>
+                <span class="red-ui-menu-icon"><i class="fa fa-cog"></i></span>
                 <span>Configuration nodes</span>
             </div>
         </div>
@@ -79,15 +79,15 @@
         <div class="red-ui-menu-group">
             <div class="red-ui-menu-label">Flows</div>
             <div class="red-ui-menu-item" @onclick="AddFlow">
-                <span class="red-ui-menu-icon">+</span>
+                <span class="red-ui-menu-icon"><i class="fa fa-plus"></i></span>
                 <span>Add flow</span>
             </div>
             <div class="red-ui-menu-item" @onclick="RenameFlow">
-                <span class="red-ui-menu-icon">✎</span>
+                <span class="red-ui-menu-icon"><i class="fa fa-pencil"></i></span>
                 <span>Rename flow</span>
             </div>
             <div class="red-ui-menu-item red-ui-menu-item-danger" @onclick="DeleteFlow">
-                <span class="red-ui-menu-icon">🗑</span>
+                <span class="red-ui-menu-icon"><i class="fa fa-trash"></i></span>
                 <span>Delete flow</span>
             </div>
         </div>
@@ -95,7 +95,7 @@
         @* Keyboard shortcuts *@
         <div class="red-ui-menu-group">
             <div class="red-ui-menu-item" @onclick="ShowKeyboardShortcuts">
-                <span class="red-ui-menu-icon">⌨</span>
+                <span class="red-ui-menu-icon"><i class="fa fa-keyboard-o"></i></span>
                 <span>Keyboard shortcuts</span>
                 <span class="red-ui-menu-shortcut">Ctrl+?</span>
             </div>

@@ -95,20 +95,15 @@ window.nodeRedEditor = {
                 const portElement = e.target.closest('.red-ui-flow-port');
                 const nodeElement = e.target.closest('.red-ui-workspace-node');
                 
-                if (portElement && portElement.parentElement !== nodeElement) {
-                    // Clicked on an output port - check if it's on the right side
-                    const portRect = portElement.getBoundingClientRect();
-                    const nodeRect = nodeElement?.getBoundingClientRect();
-                    if (nodeRect && portRect.left > nodeRect.left + nodeRect.width / 2) {
-                        // Output port - start wire drawing
-                        self.state.connecting = true;
-                        self.state.connectionSource = nodeElement;
-                        self.state.connectionPort = portElement;
-                        const nodeId = nodeElement?.getAttribute('data-node-id') || '';
-                        const portIndex = parseInt(portElement.getAttribute('data-port-index') || '0');
-                        dotNetRef.invokeMethodAsync('OnWireDrawStart', nodeId, portIndex, x, y);
-                        return;
-                    }
+                if (portElement && nodeElement && portElement.classList.contains('red-ui-flow-port-output')) {
+                    // Output port - start wire drawing
+                    self.state.connecting = true;
+                    self.state.connectionSource = nodeElement;
+                    self.state.connectionPort = portElement;
+                    const nodeId = nodeElement.getAttribute('data-node-id') || '';
+                    const portIndex = parseInt(portElement.getAttribute('data-port-index') || '0');
+                    dotNetRef.invokeMethodAsync('OnWireDrawStart', nodeId, portIndex, x, y);
+                    return;
                 }
                 
                 if (nodeElement) {
@@ -120,10 +115,10 @@ window.nodeRedEditor = {
                     
                     // Get current node position from transform
                     const transform = nodeElement.getAttribute('transform') || '';
-                    const match = transform.match(/translate\((\d+),\s*(\d+)\)/);
+                    const match = transform.match(/translate\(([+-]?\d*\.?\d+),\s*([+-]?\d*\.?\d+)\)/);
                     if (match) {
-                        self.state.dragStartNodeX = parseInt(match[1]);
-                        self.state.dragStartNodeY = parseInt(match[2]);
+                        self.state.dragStartNodeX = parseFloat(match[1]);
+                        self.state.dragStartNodeY = parseFloat(match[2]);
                     }
                     
                     // Don't start dragging yet - wait for threshold

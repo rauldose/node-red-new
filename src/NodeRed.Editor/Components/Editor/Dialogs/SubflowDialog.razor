@@ -11,7 +11,7 @@
 <div class="red-ui-dialog @(Open ? "open" : "")">
     <div class="red-ui-dialog-header">
         <span>@(IsNew ? "Create Subflow" : "Edit Subflow")</span>
-        <button class="red-ui-dialog-close" @onclick="Close">×</button>
+        <button class="red-ui-dialog-close" @onclick="Close"><i class="fa fa-times"></i></button>
     </div>
 
     <div class="red-ui-dialog-body">
@@ -71,7 +71,7 @@
                                     <option value="env">Env Variable</option>
                                 </select>
                                 <input type="text" @bind="env.ValueString" placeholder="Value" class="subflow-env-value" />
-                                <button type="button" class="red-ui-button red-ui-button-small" @onclick="() => RemoveEnvVar(env)">×</button>
+                                <button type="button" class="red-ui-button red-ui-button-small" @onclick="() => RemoveEnvVar(env)"><i class="fa fa-times"></i></button>
                             </div>
                         }
                         <button type="button" class="red-ui-button red-ui-button-small" @onclick="AddEnvVar">+ Add Environment Variable</button>

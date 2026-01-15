@@ -14,7 +14,7 @@
         <div class="red-ui-dialog-header">
             <span class="red-ui-dialog-title">Import nodes</span>
             <button class="red-ui-dialog-close" @onclick="Close">
-                <span class="icon-close">×</span>
+                <span class="icon-close"><i class="fa fa-times"></i></span>
             </button>
         </div>
         <div class="red-ui-dialog-content">
@@ -60,7 +60,7 @@
                 @if (!string.IsNullOrEmpty(ErrorMessage))
                 {
                     <div class="red-ui-import-error">
-                        <span class="icon-error">⚠</span> @ErrorMessage
+                        <span class="icon-error"><i class="fa fa-exclamation-triangle"></i></span> @ErrorMessage
                     </div>
                 }
             </div>

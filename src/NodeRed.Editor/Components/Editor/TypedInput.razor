@@ -114,17 +114,18 @@
 
     private string GetTypeIcon(string type)
     {
+        // Using FontAwesome unicode or simple text labels
         return type switch
         {
-            "msg" => "→",
-            "flow" => "⟳",
-            "global" => "⊕",
+            "msg" => "\uf061",   // fa-arrow-right
+            "flow" => "\uf021",  // fa-refresh
+            "global" => "\uf0ac", // fa-globe
             "str" => "az",
             "num" => "#",
-            "bool" => "⊘",
+            "bool" => "\uf10c",  // fa-circle-o
             "json" => "{}",
-            "bin" => "◇",
-            "date" => "⏱",
+            "bin" => "\uf1c0",   // fa-database
+            "date" => "\uf017",  // fa-clock-o
             "env" => "$",
             _ => ""
         };

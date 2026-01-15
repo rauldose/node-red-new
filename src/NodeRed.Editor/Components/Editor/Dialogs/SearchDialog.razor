@@ -18,7 +18,7 @@
                    placeholder="Search flows..."
                    autofocus />
             <button class="red-ui-search-close" @onclick="Close">
-                <span class="icon-close">×</span>
+                <span class="icon-close"><i class="fa fa-times"></i></span>
             </button>
         </div>
         <div class="red-ui-search-results">
@@ -195,19 +195,20 @@
 
     private string GetIcon(string type)
     {
+        // FontAwesome unicode values
         return type switch
         {
-            "inject" => "▶",
-            "debug" => "🐛",
-            "function" => "ƒ",
-            "switch" => "⑂",
-            "change" => "✎",
-            "template" => "📄",
-            "http in" or "http response" or "http request" => "🌐",
-            "mqtt in" or "mqtt out" => "📡",
-            "file" or "file in" => "📁",
-            "tab" => "📑",
-            _ => "◯"
+            "inject" => "\uf017",       // fa-clock-o
+            "debug" => "\uf188",        // fa-bug
+            "function" => "\uf121",     // fa-code
+            "switch" => "\uf0e7",       // fa-bolt
+            "change" => "\uf040",       // fa-pencil
+            "template" => "\uf15c",     // fa-file-text
+            "http in" or "http response" or "http request" => "\uf0ac", // fa-globe
+            "mqtt in" or "mqtt out" => "\uf1eb", // fa-wifi
+            "file" or "file in" => "\uf15b",     // fa-file
+            "tab" => "\uf0c5",          // fa-files-o
+            _ => "\uf1b2"               // fa-cube
         };
     }
 

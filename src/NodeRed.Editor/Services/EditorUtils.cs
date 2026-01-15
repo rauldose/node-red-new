@@ -41,39 +41,41 @@ public static class EditorUtils
 
     /// <summary>
     /// Gets the icon for a node type.
+    /// Returns FontAwesome unicode characters for use in SVG text elements.
     /// Translated from Node-RED's node icon definitions.
     /// </summary>
     public static string GetNodeIcon(string nodeType)
     {
+        // FontAwesome 4.7 unicode values
         return nodeType switch
         {
-            "inject" => "⏰",
-            "debug" => "🐛",
-            "function" => "𝑓",
-            "switch" => "⚡",
-            "change" => "✎",
-            "template" => "📝",
-            "delay" => "⏱",
-            "trigger" => "⚡",
-            "http request" => "🌐",
-            "http in" => "→",
-            "http response" => "←",
-            "mqtt in" or "mqtt out" => "📡",
-            "file" or "file in" => "📁",
-            "json" or "csv" or "xml" => "📋",
-            "comment" => "💬",
-            "complete" or "catch" or "status" => "⚙",
-            "link in" or "link out" or "link call" => "🔗",
-            "websocket in" or "websocket out" => "🔌",
-            "tcp in" or "tcp out" or "udp in" or "udp out" => "📨",
-            "split" or "join" => "⧉",
-            "sort" or "batch" => "📊",
-            "html" or "yaml" => "📄",
-            "watch" => "👁",
-            "exec" => "▶",
-            "range" => "↔",
-            "rbe" => "Δ",
-            _ => "■"
+            "inject" => "\uf017",       // fa-clock-o
+            "debug" => "\uf188",        // fa-bug
+            "function" => "\uf121",     // fa-code
+            "switch" => "\uf0e7",       // fa-bolt
+            "change" => "\uf040",       // fa-pencil
+            "template" => "\uf15c",     // fa-file-text
+            "delay" => "\uf017",        // fa-clock-o
+            "trigger" => "\uf0e7",      // fa-bolt
+            "http request" => "\uf0ac", // fa-globe
+            "http in" => "\uf061",      // fa-arrow-right
+            "http response" => "\uf060", // fa-arrow-left
+            "mqtt in" or "mqtt out" => "\uf1eb", // fa-wifi
+            "file" or "file in" => "\uf15b",     // fa-file
+            "json" or "csv" or "xml" => "\uf0ea", // fa-clipboard
+            "comment" => "\uf075",      // fa-comment
+            "complete" or "catch" or "status" => "\uf013", // fa-cog
+            "link in" or "link out" or "link call" => "\uf0c1", // fa-link
+            "websocket in" or "websocket out" => "\uf1e6", // fa-plug (use bolt as fallback)
+            "tcp in" or "tcp out" or "udp in" or "udp out" => "\uf0e0", // fa-envelope
+            "split" or "join" => "\uf0db",  // fa-columns
+            "sort" or "batch" => "\uf0dc",  // fa-sort
+            "html" or "yaml" => "\uf016",   // fa-file-o
+            "watch" => "\uf06e",        // fa-eye
+            "exec" => "\uf120",         // fa-terminal
+            "range" => "\uf07e",        // fa-arrows-h
+            "rbe" => "\uf0b0",          // fa-filter
+            _ => "\uf1b2"               // fa-cube (default)
         };
     }
 
