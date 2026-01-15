@@ -93,6 +93,145 @@
                       fill="url(#red-ui-grid-pattern)" />
             }
             
+            @* ============================================================
+               SECTION 17: GROUPS
+               SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/group.js
+               ============================================================
+               Groups are rendered BEFORE nodes so they appear behind
+               ============================================================ *@
+            <g class="red-ui-workspace-chart-groups">
+                @foreach (var group in GetActiveFlowGroups().OrderBy(g => g.ZIndex))
+                {
+                    <g class="red-ui-flow-group @(group.Selected ? "red-ui-flow-group-selected" : "")"
+                       data-group-id="@group.Id"
+                       transform="translate(@group.X, @group.Y)"
+                       @onclick="(e) => SelectGroup(group, e)"
+                       @onclick:stopPropagation="true"
+                       @ondblclick="() => EditGroup(group)"
+                       @onmousedown="(e) => StartGroupDrag(group, e)"
+                       @oncontextmenu="(e) => ShowGroupContextMenu(group, e)"
+                       @oncontextmenu:preventDefault="true">
+                        
+                        @* Group body (fill) *@
+                        <rect class="red-ui-flow-group-body"
+                              width="@group.Width" height="@group.Height"
+                              rx="4" ry="4"
+                              style="fill: @(group.Fill ?? "transparent"); fill-opacity: @group.FillOpacity;" />
+                        
+                        @* Group outline (border) *@
+                        <rect class="red-ui-flow-group-outline"
+                              width="@group.Width" height="@group.Height"
+                              rx="4" ry="4"
+                              style="stroke: @(group.Stroke ?? "#999"); stroke-opacity: @group.StrokeOpacity;" />
+                        
+                        @* Group label *@
+                        @if (!string.IsNullOrEmpty(group.Name))
+                        {
+                            var labelPosition = group.GetLabelPosition();
+                            @((MarkupString)$"<text class=\"red-ui-flow-group-label\" x=\"{labelPosition.x}\" y=\"{labelPosition.y}\" text-anchor=\"{group.GetLabelAnchor()}\">{System.Web.HttpUtility.HtmlEncode(group.Name)}</text>")
+                        }
+                        
+                        @* Resize handles (only when selected) *@
+                        @if (group.Selected)
+                        {
+                            var handleNw = "nw";
+                            var handleNe = "ne";
+                            var handleSw = "sw";
+                            var handleSe = "se";
+                            var handleN = "n";
+                            var handleS = "s";
+                            var handleW = "w";
+                            var handleE = "e";
+                            @* Corner handles *@
+                            <rect class="red-ui-flow-group-handle red-ui-flow-group-handle-nw"
+                                  x="-4" y="-4" width="8" height="8"
+                                  @onmousedown="(e) => StartGroupResize(group, handleNw, e)"
+                                  @onmousedown:stopPropagation="true" />
+                            <rect class="red-ui-flow-group-handle red-ui-flow-group-handle-ne"
+                                  x="@(group.Width - 4)" y="-4" width="8" height="8"
+                                  @onmousedown="(e) => StartGroupResize(group, handleNe, e)"
+                                  @onmousedown:stopPropagation="true" />
+                            <rect class="red-ui-flow-group-handle red-ui-flow-group-handle-sw"
+                                  x="-4" y="@(group.Height - 4)" width="8" height="8"
+                                  @onmousedown="(e) => StartGroupResize(group, handleSw, e)"
+                                  @onmousedown:stopPropagation="true" />
+                            <rect class="red-ui-flow-group-handle red-ui-flow-group-handle-se"
+                                  x="@(group.Width - 4)" y="@(group.Height - 4)" width="8" height="8"
+                                  @onmousedown="(e) => StartGroupResize(group, handleSe, e)"
+                                  @onmousedown:stopPropagation="true" />
+                            
+                            @* Edge handles *@
+                            <rect class="red-ui-flow-group-handle red-ui-flow-group-handle-n"
+                                  x="@(group.Width / 2 - 4)" y="-4" width="8" height="8"
+                                  @onmousedown="(e) => StartGroupResize(group, handleN, e)"
+                                  @onmousedown:stopPropagation="true" />
+                            <rect class="red-ui-flow-group-handle red-ui-flow-group-handle-s"
+                                  x="@(group.Width / 2 - 4)" y="@(group.Height - 4)" width="8" height="8"
+                                  @onmousedown="(e) => StartGroupResize(group, handleS, e)"
+                                  @onmousedown:stopPropagation="true" />
+                            <rect class="red-ui-flow-group-handle red-ui-flow-group-handle-w"
+                                  x="-4" y="@(group.Height / 2 - 4)" width="8" height="8"
+                                  @onmousedown="(e) => StartGroupResize(group, handleW, e)"
+                                  @onmousedown:stopPropagation="true" />
+                            <rect class="red-ui-flow-group-handle red-ui-flow-group-handle-e"
+                                  x="@(group.Width - 4)" y="@(group.Height / 2 - 4)" width="8" height="8"
+                                  @onmousedown="(e) => StartGroupResize(group, handleE, e)"
+                                  @onmousedown:stopPropagation="true" />
+                        }
+                    </g>
+                }
+            </g>
+            
+            @* ============================================================
+               SECTION 16: SUBFLOW PORTS
+               SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/subflow.js
+               ============================================================
+               When editing a subflow, show input/output/status port nodes
+               ============================================================ *@
+            @if (IsEditingSubflow())
+            {
+                var subflow = GetCurrentSubflow();
+                if (subflow != null)
+                {
+                    @* Subflow input port (left side) *@
+                    @foreach (var inPort in subflow.In)
+                    {
+                        <g class="red-ui-flow-subflow-port red-ui-flow-subflow-port-input"
+                           transform="translate(@inPort.X, @inPort.Y)">
+                            <rect width="30" height="25" rx="5" ry="5" />
+                            <text x="15" y="16" text-anchor="middle">in</text>
+                            @* Output port on the right side of input node *@
+                            <rect class="red-ui-flow-port" x="25" y="7" width="10" height="10" rx="3" ry="3" />
+                        </g>
+                    }
+                    
+                    @* Subflow output ports (right side) *@
+                    @for (int i = 0; i < subflow.Out.Count; i++)
+                    {
+                        var outPort = subflow.Out[i];
+                        var portIndex = i;
+                        <g class="red-ui-flow-subflow-port red-ui-flow-subflow-port-output"
+                           transform="translate(@outPort.X, @outPort.Y)">
+                            <rect width="30" height="25" rx="5" ry="5" />
+                            <text x="15" y="16" text-anchor="middle">@(portIndex + 1)</text>
+                            @* Input port on the left side of output node *@
+                            <rect class="red-ui-flow-port" x="-5" y="7" width="10" height="10" rx="3" ry="3" />
+                        </g>
+                    }
+                    
+                    @* Subflow status node *@
+                    @if (subflow.Status != null)
+                    {
+                        <g class="red-ui-flow-subflow-port red-ui-flow-subflow-port-status"
+                           transform="translate(@subflow.Status.X, @subflow.Status.Y)">
+                            <rect width="40" height="25" rx="5" ry="5" />
+                            <text x="20" y="16" text-anchor="middle">status</text>
+                            <rect class="red-ui-flow-port" x="-5" y="7" width="10" height="10" rx="3" ry="3" />
+                        </g>
+                    }
+                }
+            }
+            
             @* Wires/Links *@
             <g class="red-ui-workspace-chart-wires">
                 @foreach (var wire in GetActiveFlowWires())
@@ -122,7 +261,8 @@
             <g class="red-ui-workspace-chart-nodes">
                 @foreach (var node in GetActiveFlowNodes())
                 {
-                    <g class="red-ui-workspace-node @(node.Selected ? "selected" : "")"
+                    var isSubflowInstance = node.Type.StartsWith("subflow:");
+                    <g class="red-ui-workspace-node @(node.Selected ? "selected" : "") @(isSubflowInstance ? "red-ui-flow-subflow-instance" : "")"
                        data-node-id="@node.Id"
                        transform="translate(@node.X, @node.Y)"
                        @onclick="(e) => SelectNode(node, e)"
@@ -143,6 +283,22 @@
                               height="@node.Height"
                               rx="5" ry="5"
                               fill="@node.Color" />
+                        
+                        @* ============================================================
+                           SECTION 16.2: Subflow Instance Indicator
+                           SOURCE: packages/node_modules/@node-red/editor-client/src/sass/subflow.scss
+                           ============================================================
+                           Subflow instances have a visual indicator (small rectangle in top-right)
+                           ============================================================ *@
+                        @if (isSubflowInstance)
+                        {
+                            <rect class="red-ui-flow-subflow-indicator"
+                                  x="@(node.Width - 12)" y="2"
+                                  width="10" height="10"
+                                  rx="2" ry="2"
+                                  fill="#fff"
+                                  fill-opacity="0.5" />
+                        }
                         
                         @* ============================================================
                            SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/view.js
@@ -904,5 +1060,122 @@
         State.Nodes.Add(newNode);
         State.MarkDirty();
         StateHasChanged();
+    }
+
+    // ============================================================
+    // SECTION 17: GROUP METHODS
+    // SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/group.js
+    // ============================================================
+
+    private List<NodeGroup> GetActiveFlowGroups()
+    {
+        return State.GroupManager.GetGroupsForFlow(State.ActiveFlowId).ToList();
+    }
+
+    private void SelectGroup(NodeGroup group, MouseEventArgs e)
+    {
+        if (!e.ShiftKey && !e.CtrlKey)
+        {
+            foreach (var n in State.Nodes) n.Selected = false;
+            foreach (var w in State.Wires) w.Selected = false;
+            foreach (var g in State.GroupManager.Groups) g.Selected = false;
+        }
+        group.Selected = !group.Selected;
+        StateHasChanged();
+    }
+
+    private void EditGroup(NodeGroup group)
+    {
+        State.EditingGroup = group;
+        State.ShowGroupDialog = true;
+        StateHasChanged();
+    }
+
+    private void StartGroupDrag(NodeGroup group, MouseEventArgs e)
+    {
+        if (e.Button == 0)
+        {
+            State.IsDraggingGroup = true;
+            State.DraggingGroupId = group.Id;
+            State.DragOffset = new Point((int)e.OffsetX - group.X, (int)e.OffsetY - group.Y);
+        }
+    }
+
+    private void StartGroupResize(NodeGroup group, string handle, MouseEventArgs e)
+    {
+        State.IsResizingGroup = true;
+        State.ResizingGroupId = group.Id;
+        group.ActiveResizeHandle = handle;
+        State.LastMousePosition = new Point((int)e.OffsetX, (int)e.OffsetY);
+    }
+
+    private void ShowGroupContextMenu(NodeGroup group, MouseEventArgs e)
+    {
+        State.ContextMenuPosition = new Point((int)e.ClientX, (int)e.ClientY);
+        State.ContextMenuItems = new List<ContextMenuItem>
+        {
+            new() { Label = "Edit group", Icon = "pencil", Action = () => EditGroup(group) },
+            new() { Label = "Select all in group", Icon = "object-group", Action = () => SelectAllInGroup(group) },
+            new() { IsSeparator = true },
+            new() { Label = "Ungroup", Icon = "object-ungroup", Action = () => UngroupNodes(group) },
+            new() { IsSeparator = true },
+            new() { Label = "Delete group", Icon = "trash", Action = () => DeleteGroup(group) }
+        };
+        State.ContextMenuOpen = true;
+        StateHasChanged();
+    }
+
+    private void SelectAllInGroup(NodeGroup group)
+    {
+        foreach (var nodeId in group.Nodes)
+        {
+            var node = State.Nodes.FirstOrDefault(n => n.Id == nodeId);
+            if (node != null) node.Selected = true;
+        }
+        State.ContextMenuOpen = false;
+        StateHasChanged();
+    }
+
+    private void UngroupNodes(NodeGroup group)
+    {
+        State.GroupManager.RemoveGroup(group.Id);
+        State.ContextMenuOpen = false;
+        State.MarkDirty();
+        StateHasChanged();
+    }
+
+    private void DeleteGroup(NodeGroup group)
+    {
+        // Delete nodes in group as well
+        foreach (var nodeId in group.Nodes)
+        {
+            var node = State.Nodes.FirstOrDefault(n => n.Id == nodeId);
+            if (node != null)
+            {
+                State.Nodes.Remove(node);
+                State.Wires.RemoveAll(w => w.SourceId == nodeId || w.TargetId == nodeId);
+            }
+        }
+        State.GroupManager.RemoveGroup(group.Id);
+        State.ContextMenuOpen = false;
+        State.MarkDirty();
+        StateHasChanged();
+    }
+
+    // ============================================================
+    // SECTION 16: SUBFLOW METHODS
+    // SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/subflow.js
+    // ============================================================
+
+    private bool IsEditingSubflow()
+    {
+        // Check if the active flow is a subflow
+        var flow = State.Flows.FirstOrDefault(f => f.Id == State.ActiveFlowId);
+        return flow?.Type == "subflow";
+    }
+
+    private Subflow? GetCurrentSubflow()
+    {
+        return State.SubflowManager?.GetSubflow(State.ActiveFlowId);
     }
 }

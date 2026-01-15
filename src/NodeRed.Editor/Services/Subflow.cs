@@ -1,6 +1,7 @@
 // ============================================================
 // SOURCE: packages/node_modules/@node-red/editor-client/src/js/nodes.js
 //         packages/node_modules/@node-red/runtime/lib/flows/Subflow.js
+//         packages/node_modules/@node-red/editor-client/src/js/ui/subflow.js
 // ============================================================
 // Subflow support - treating a flow as a reusable node.
 // ============================================================
@@ -21,8 +22,23 @@ public class Subflow
     public string Color { get; set; } = "#DDAA99";
 
     // Input/output port definitions
+    // ============================================================
+    // SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/subflow.js
+    // LINES: 90-110
+    // ============================================================
+    // Subflow can have 0 or 1 input and 0-n outputs
+    // ============================================================
     public List<SubflowPort> In { get; set; } = new();
     public List<SubflowPort> Out { get; set; } = new();
+
+    // Status node
+    // ============================================================
+    // SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/subflow.js
+    // LINES: 120-135
+    // ============================================================
+    // Subflows can have a status node that propagates status to instances
+    // ============================================================
+    public SubflowStatusNode? Status { get; set; }
 
     // Environment variables
     public List<SubflowEnvVar> Env { get; set; } = new();
@@ -30,12 +46,18 @@ public class Subflow
     // The nodes contained within the subflow
     public List<FlowNode> Nodes { get; set; } = new();
     public List<FlowWire> Wires { get; set; } = new();
+    public List<NodeGroup> Groups { get; set; } = new();
 
     // Subflow instance properties
     public Dictionary<string, object>? Meta { get; set; }
 
     // Icon
     public string Icon { get; set; } = "subflow.svg";
+    public string? IconUrl { get; set; }
+
+    // Input/Output labels
+    public List<string> InputLabels { get; set; } = new();
+    public List<string> OutputLabels { get; set; } = new();
 
     /// <summary>
     /// Create a subflow instance (a node that uses this subflow as template).
@@ -147,11 +169,31 @@ public class Subflow
 
 /// <summary>
 /// A port on a subflow (input or output).
+/// ============================================================
+/// SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/subflow.js
+/// LINES: 150-175
+/// ============================================================
 /// </summary>
 public class SubflowPort
 {
+    public string Id { get; set; } = "";
     public int X { get; set; }
     public int Y { get; set; }
+    public List<SubflowWireRef> Wires { get; set; } = new();
+    public string? Label { get; set; }
+}
+
+/// <summary>
+/// Subflow status node for propagating status to instances.
+/// ============================================================
+/// SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/subflow.js
+/// LINES: 180-195
+/// ============================================================
+/// </summary>
+public class SubflowStatusNode
+{
+    public int X { get; set; } = 280;
+    public int Y { get; set; } = 100;
     public List<SubflowWireRef> Wires { get; set; } = new();
 }
 
@@ -166,6 +208,10 @@ public class SubflowWireRef
 
 /// <summary>
 /// An environment variable for a subflow.
+/// ============================================================
+/// SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/editors/subflow.js
+/// LINES: 450-520
+/// ============================================================
 /// </summary>
 public class SubflowEnvVar
 {
@@ -173,17 +219,34 @@ public class SubflowEnvVar
     public string Type { get; set; } = "str";
     public object? Value { get; set; }
     public SubflowEnvVarUI? UI { get; set; }
+    
+    // Order for reordering
+    public int Order { get; set; }
+    
+    // Credential handling
+    public bool IsCredential { get; set; }
 }
 
 /// <summary>
 /// UI configuration for subflow environment variable.
+/// ============================================================
+/// SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/editors/subflow.js
+/// LINES: 525-600
+/// ============================================================
 /// </summary>
 public class SubflowEnvVarUI
 {
-    public string? Type { get; set; }
+    public string? Type { get; set; }  // none, input, select, checkbox, spinner, cred
     public string? Icon { get; set; }
     public string? Label { get; set; }
     public List<SubflowEnvOption>? Options { get; set; }
+    
+    // UI options
+    public bool Hidden { get; set; }
+    public double? Min { get; set; }
+    public double? Max { get; set; }
+    public double? Step { get; set; }
+    public int? Rows { get; set; }
 }
 
 /// <summary>
@@ -193,4 +256,44 @@ public class SubflowEnvOption
 {
     public string Label { get; set; } = "";
     public object? Value { get; set; }
+}
+
+/// <summary>
+/// Manager for subflows.
+/// </summary>
+public class SubflowManager
+{
+    private readonly List<Subflow> _subflows = new();
+    
+    public IReadOnlyList<Subflow> Subflows => _subflows;
+    
+    public void AddSubflow(Subflow subflow)
+    {
+        _subflows.Add(subflow);
+    }
+    
+    public void RemoveSubflow(string id)
+    {
+        _subflows.RemoveAll(s => s.Id == id);
+    }
+    
+    public Subflow? GetSubflow(string id)
+    {
+        return _subflows.FirstOrDefault(s => s.Id == id);
+    }
+    
+    /// <summary>
+    /// Get the subflow definition from a subflow instance type (e.g., "subflow:abc123")
+    /// </summary>
+    public Subflow? GetSubflowFromInstanceType(string type)
+    {
+        if (!type.StartsWith("subflow:")) return null;
+        var id = type.Substring(8);
+        return GetSubflow(id);
+    }
+    
+    public void Clear()
+    {
+        _subflows.Clear();
+    }
 }

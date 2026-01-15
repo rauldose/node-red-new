@@ -117,6 +117,27 @@ public class EditorState
     // Debug
     public List<DebugMessage> DebugMessages { get; set; } = new();
 
+    // ============================================================
+    // SECTION 17: GROUP STATE
+    // SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/group.js
+    // ============================================================
+    public GroupManager GroupManager { get; } = new();
+    public bool IsDraggingGroup { get; set; }
+    public string? DraggingGroupId { get; set; }
+    public bool IsResizingGroup { get; set; }
+    public string? ResizingGroupId { get; set; }
+    public Point LastMousePosition { get; set; } = new(0, 0);
+    public NodeGroup? EditingGroup { get; set; }
+    public bool ShowGroupDialog { get; set; }
+
+    // ============================================================
+    // SECTION 16: SUBFLOW STATE
+    // SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/subflow.js
+    // ============================================================
+    public SubflowManager SubflowManager { get; } = new();
+    public Subflow? EditingSubflow { get; set; }
+    public bool ShowSubflowDialog { get; set; }
+
     // Selection
     public IEnumerable<FlowNode> SelectedNodes => Nodes.Where(n => n.Selected);
 
