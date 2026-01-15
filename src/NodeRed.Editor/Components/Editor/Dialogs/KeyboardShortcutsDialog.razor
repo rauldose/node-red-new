@@ -1,0 +1,135 @@
+@* ============================================================
+   SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/keyboard.js
+   ============================================================
+   Keyboard shortcuts dialog showing all available shortcuts.
+   ============================================================ *@
+
+@using NodeRed.Editor.Services
+@inject EditorState State
+
+<div class="red-ui-dialog @(IsOpen ? "open" : "")" style="display: @(IsOpen ? "block" : "none")">
+    <div class="red-ui-dialog-overlay" @onclick="Close"></div>
+    <div class="red-ui-dialog-container" style="width: 600px;">
+        <div class="red-ui-dialog-header">
+            <span class="red-ui-dialog-title">Keyboard shortcuts</span>
+            <button class="red-ui-dialog-close" @onclick="Close">
+                <span class="icon-close"><i class="fa fa-times"></i></span>
+            </button>
+        </div>
+        <div class="red-ui-dialog-content">
+            <div class="red-ui-keyboard-shortcuts">
+                <div class="red-ui-keyboard-section">
+                    <h4>General</h4>
+                    <div class="red-ui-keyboard-shortcut">
+                        <span class="red-ui-keyboard-keys"><kbd>Ctrl</kbd>+<kbd>F</kbd></span>
+                        <span class="red-ui-keyboard-action">Search flows</span>
+                    </div>
+                    <div class="red-ui-keyboard-shortcut">
+                        <span class="red-ui-keyboard-keys"><kbd>Ctrl</kbd>+<kbd>I</kbd></span>
+                        <span class="red-ui-keyboard-action">Import</span>
+                    </div>
+                    <div class="red-ui-keyboard-shortcut">
+                        <span class="red-ui-keyboard-keys"><kbd>Ctrl</kbd>+<kbd>E</kbd></span>
+                        <span class="red-ui-keyboard-action">Export</span>
+                    </div>
+                    <div class="red-ui-keyboard-shortcut">
+                        <span class="red-ui-keyboard-keys"><kbd>Ctrl</kbd>+<kbd>D</kbd></span>
+                        <span class="red-ui-keyboard-action">Deploy</span>
+                    </div>
+                </div>
+
+                <div class="red-ui-keyboard-section">
+                    <h4>Selection</h4>
+                    <div class="red-ui-keyboard-shortcut">
+                        <span class="red-ui-keyboard-keys"><kbd>Ctrl</kbd>+<kbd>A</kbd></span>
+                        <span class="red-ui-keyboard-action">Select all nodes</span>
+                    </div>
+                    <div class="red-ui-keyboard-shortcut">
+                        <span class="red-ui-keyboard-keys"><kbd>Escape</kbd></span>
+                        <span class="red-ui-keyboard-action">Clear selection</span>
+                    </div>
+                </div>
+
+                <div class="red-ui-keyboard-section">
+                    <h4>Editing</h4>
+                    <div class="red-ui-keyboard-shortcut">
+                        <span class="red-ui-keyboard-keys"><kbd>Delete</kbd> / <kbd>Backspace</kbd></span>
+                        <span class="red-ui-keyboard-action">Delete selected</span>
+                    </div>
+                    <div class="red-ui-keyboard-shortcut">
+                        <span class="red-ui-keyboard-keys"><kbd>Ctrl</kbd>+<kbd>C</kbd></span>
+                        <span class="red-ui-keyboard-action">Copy selected</span>
+                    </div>
+                    <div class="red-ui-keyboard-shortcut">
+                        <span class="red-ui-keyboard-keys"><kbd>Ctrl</kbd>+<kbd>X</kbd></span>
+                        <span class="red-ui-keyboard-action">Cut selected</span>
+                    </div>
+                    <div class="red-ui-keyboard-shortcut">
+                        <span class="red-ui-keyboard-keys"><kbd>Ctrl</kbd>+<kbd>V</kbd></span>
+                        <span class="red-ui-keyboard-action">Paste</span>
+                    </div>
+                    <div class="red-ui-keyboard-shortcut">
+                        <span class="red-ui-keyboard-keys"><kbd>Ctrl</kbd>+<kbd>Z</kbd></span>
+                        <span class="red-ui-keyboard-action">Undo</span>
+                    </div>
+                    <div class="red-ui-keyboard-shortcut">
+                        <span class="red-ui-keyboard-keys"><kbd>Ctrl</kbd>+<kbd>Y</kbd></span>
+                        <span class="red-ui-keyboard-action">Redo</span>
+                    </div>
+                </div>
+
+                <div class="red-ui-keyboard-section">
+                    <h4>View</h4>
+                    <div class="red-ui-keyboard-shortcut">
+                        <span class="red-ui-keyboard-keys"><kbd>Ctrl</kbd>+<kbd>=</kbd></span>
+                        <span class="red-ui-keyboard-action">Zoom in</span>
+                    </div>
+                    <div class="red-ui-keyboard-shortcut">
+                        <span class="red-ui-keyboard-keys"><kbd>Ctrl</kbd>+<kbd>-</kbd></span>
+                        <span class="red-ui-keyboard-action">Zoom out</span>
+                    </div>
+                    <div class="red-ui-keyboard-shortcut">
+                        <span class="red-ui-keyboard-keys"><kbd>Ctrl</kbd>+<kbd>0</kbd></span>
+                        <span class="red-ui-keyboard-action">Reset zoom</span>
+                    </div>
+                    <div class="red-ui-keyboard-shortcut">
+                        <span class="red-ui-keyboard-keys"><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd></span>
+                        <span class="red-ui-keyboard-action">Toggle palette</span>
+                    </div>
+                    <div class="red-ui-keyboard-shortcut">
+                        <span class="red-ui-keyboard-keys"><kbd>Ctrl</kbd>+<kbd>Space</kbd></span>
+                        <span class="red-ui-keyboard-action">Toggle sidebar</span>
+                    </div>
+                </div>
+
+                <div class="red-ui-keyboard-section">
+                    <h4>Node movement</h4>
+                    <div class="red-ui-keyboard-shortcut">
+                        <span class="red-ui-keyboard-keys"><kbd><i class="fa fa-arrow-up"></i></kbd> <kbd><i class="fa fa-arrow-down"></i></kbd> <kbd><i class="fa fa-arrow-left"></i></kbd> <kbd><i class="fa fa-arrow-right"></i></kbd></span>
+                        <span class="red-ui-keyboard-action">Move selected node(s)</span>
+                    </div>
+                    <div class="red-ui-keyboard-shortcut">
+                        <span class="red-ui-keyboard-keys"><kbd>Shift</kbd>+<kbd>Arrow</kbd></span>
+                        <span class="red-ui-keyboard-action">Move selected node(s) by grid size</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="red-ui-dialog-footer">
+            <button class="red-ui-button red-ui-button-primary" @onclick="Close">Close</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public bool IsOpen { get; set; }
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    private async Task Close()
+    {
+        await OnClose.InvokeAsync();
+    }
+}

@@ -1,0 +1,210 @@
+@* ============================================================
+// SOURCE: packages/node_modules/@node-red/nodes/core/common/20-inject.html
+// ============================================================
+// Inject Node Editor - Edit panel for the inject node
+// ============================================================ *@
+
+@using NodeRed.Util
+@using System.Text.Json
+@using System.Text.Json.Nodes
+
+<div class="node-editor inject-editor">
+    @* ============================================================
+    // ORIGINAL CODE (lines 20-50):
+    // ------------------------------------------------------------
+    // <div class="form-row">
+    //     <label for="node-input-payload"><i class="fa fa-envelope"></i> <span data-i18n="common.label.payload"></span></label>
+    //     <input type="text" id="node-input-payload" style="width:70%">
+    //     <input type="hidden" id="node-input-payloadType">
+    // </div>
+    // ------------------------------------------------------------
+    // TRANSLATION:
+    // ============================================================ *@
+    <div class="form-row">
+        <label for="node-input-name">
+            <i class="fa fa-tag"></i> Name
+        </label>
+        <input type="text" id="node-input-name" @bind="Name" placeholder="Name" />
+    </div>
+
+    <div class="form-row">
+        <label>
+            <i class="fa fa-envelope"></i> Payload
+        </label>
+        <div class="typed-input-container">
+            <select @bind="PayloadType" class="node-input-payloadType">
+                <option value="flow">flow.</option>
+                <option value="global">global.</option>
+                <option value="str">string</option>
+                <option value="num">number</option>
+                <option value="bool">boolean</option>
+                <option value="json">JSON</option>
+                <option value="bin">buffer</option>
+                <option value="date">timestamp</option>
+                <option value="env">env variable</option>
+            </select>
+            @if (PayloadType != "date")
+            {
+                <input type="text" @bind="Payload" class="node-input-payload" placeholder="@GetPayloadPlaceholder()" />
+            }
+        </div>
+    </div>
+
+    <div class="form-row">
+        <label>
+            <i class="fa fa-tasks"></i> Topic
+        </label>
+        <input type="text" @bind="Topic" placeholder="Topic" />
+    </div>
+
+    <hr />
+    
+    <div class="form-row">
+        <label>
+            <i class="fa fa-clock-o"></i> Repeat
+        </label>
+        <select @bind="RepeatType" class="node-input-repeatType">
+            <option value="none">none</option>
+            <option value="interval">interval</option>
+            <option value="interval-time">interval between times</option>
+            <option value="cron">at a specific time</option>
+        </select>
+    </div>
+
+    @if (RepeatType == "interval")
+    {
+        <div class="form-row">
+            <label></label>
+            <span>every</span>
+            <input type="number" @bind="Repeat" style="width:60px" min="1" />
+            <select @bind="RepeatUnits" style="width:100px">
+                <option value="s">seconds</option>
+                <option value="m">minutes</option>
+                <option value="h">hours</option>
+            </select>
+        </div>
+    }
+    else if (RepeatType == "interval-time")
+    {
+        <div class="form-row">
+            <label></label>
+            <span>between</span>
+            <input type="text" @bind="StartTime" style="width:100px" placeholder="00:00" />
+            <span>and</span>
+            <input type="text" @bind="EndTime" style="width:100px" placeholder="23:59" />
+        </div>
+        <div class="form-row">
+            <label></label>
+            <span>every</span>
+            <input type="number" @bind="Repeat" style="width:60px" min="1" />
+            <select @bind="RepeatUnits" style="width:100px">
+                <option value="s">seconds</option>
+                <option value="m">minutes</option>
+                <option value="h">hours</option>
+            </select>
+        </div>
+    }
+    else if (RepeatType == "cron")
+    {
+        <div class="form-row">
+            <label></label>
+            <input type="text" @bind="Crontab" placeholder="*/5 * * * *" style="width:200px" />
+            <span class="input-help">cron expression</span>
+        </div>
+    }
+
+    <div class="form-row">
+        <label>
+            <i class="fa fa-play"></i> Inject once
+        </label>
+        <input type="checkbox" @bind="Once" style="width:auto" />
+        @if (Once)
+        {
+            <span style="margin-left:10px">after</span>
+            <input type="number" @bind="OnceDelay" style="width:60px" min="0" step="0.1" />
+            <span>seconds</span>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public JsonObject? Node { get; set; }
+    [Parameter] public EventCallback<JsonObject> NodeChanged { get; set; }
+
+    private string Name { get; set; } = "";
+    private string Payload { get; set; } = "";
+    private string PayloadType { get; set; } = "date";
+    private string Topic { get; set; } = "";
+    private string RepeatType { get; set; } = "none";
+    private double Repeat { get; set; } = 1;
+    private string RepeatUnits { get; set; } = "s";
+    private string Crontab { get; set; } = "";
+    private string StartTime { get; set; } = "00:00";
+    private string EndTime { get; set; } = "23:59";
+    private bool Once { get; set; } = false;
+    private double OnceDelay { get; set; } = 0.1;
+
+    protected override void OnParametersSet()
+    {
+        if (Node is not null)
+        {
+            Name = Node["name"]?.GetValue<string>() ?? "";
+            Payload = Node["payload"]?.GetValue<string>() ?? "";
+            PayloadType = Node["payloadType"]?.GetValue<string>() ?? "date";
+            Topic = Node["topic"]?.GetValue<string>() ?? "";
+            RepeatType = Node["repeat"]?.GetValue<string>() is not null ? "interval" : "none";
+            Repeat = Node["repeat"]?.GetValue<double>() ?? 1;
+            Crontab = Node["crontab"]?.GetValue<string>() ?? "";
+            Once = Node["once"]?.GetValue<bool>() ?? false;
+            OnceDelay = Node["onceDelay"]?.GetValue<double>() ?? 0.1;
+        }
+    }
+
+    private string GetPayloadPlaceholder()
+    {
+        return PayloadType switch
+        {
+            "str" => "string value",
+            "num" => "0",
+            "bool" => "true/false",
+            "json" => "{}",
+            "flow" => "variable name",
+            "global" => "variable name",
+            "env" => "environment variable",
+            "bin" => "[0,1,2...]",
+            _ => ""
+        };
+    }
+
+    public JsonObject GetNodeConfig()
+    {
+        var node = Node?.DeepClone().AsObject() ?? new JsonObject();
+        node["name"] = Name;
+        node["payload"] = Payload;
+        node["payloadType"] = PayloadType;
+        node["topic"] = Topic;
+        
+        if (RepeatType == "interval" || RepeatType == "interval-time")
+        {
+            node["repeat"] = Repeat.ToString();
+        }
+        else
+        {
+            node.Remove("repeat");
+        }
+        
+        if (RepeatType == "cron")
+        {
+            node["crontab"] = Crontab;
+        }
+        else
+        {
+            node.Remove("crontab");
+        }
+        
+        node["once"] = Once;
+        node["onceDelay"] = OnceDelay;
+        
+        return node;
+    }
+}

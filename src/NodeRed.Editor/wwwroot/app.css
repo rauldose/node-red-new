@@ -1,0 +1,2599 @@
+/* ============================================================
+   SOURCE: packages/node_modules/@node-red/editor-client/src/sass/
+   1:1 Translation of Node-RED CSS Variables and Styles
+   ============================================================ */
+
+/* ============================================================
+   CSS Variables (from colors.scss, sizes.scss, variables.scss)
+   ============================================================ */
+:root {
+    /* Fonts */
+    --red-ui-primary-font: 'Helvetica Neue', Arial, Helvetica, sans-serif;
+    --red-ui-primary-font-size: 14px;
+    --red-ui-monospace-font: Menlo, Consolas, 'DejaVu Sans Mono', Courier, monospace;
+
+    /* Header Height */
+    --red-ui-header-height: 48px;
+
+    /* Backgrounds */
+    --red-ui-primary-background: #f3f3f3;
+    --red-ui-secondary-background: #fff;
+    --red-ui-secondary-background-selected: #efefef;
+    --red-ui-secondary-background-inactive: #f0f0f0;
+    --red-ui-secondary-background-hover: #e6e6e6;
+    --red-ui-secondary-background-disabled: #f9f9f9;
+    --red-ui-tertiary-background: #f7f7f7;
+
+    /* Shadow */
+    --red-ui-shadow: rgba(0, 0, 0, 0.2);
+
+    /* Text Colors */
+    --red-ui-primary-text-color: #555;
+    --red-ui-secondary-text-color: #888;
+    --red-ui-secondary-text-color-focus: #666;
+    --red-ui-secondary-text-color-hover: #666;
+    --red-ui-secondary-text-color-active: #666;
+    --red-ui-secondary-text-color-selected: #666;
+    --red-ui-secondary-text-color-inactive: #666;
+    --red-ui-secondary-text-color-disabled: #bbb;
+    --red-ui-tertiary-text-color: #aaa;
+    --red-ui-header-text-color: #444;
+
+    --red-ui-text-color-error: #AD1625;
+    --red-ui-text-color-warning: #CAB200;
+    --red-ui-text-color-success: #3a3;
+    --red-ui-text-color-code: #AD1625;
+    --red-ui-text-color-link: #0088cc;
+
+    /* Border Colors */
+    --red-ui-primary-border-color: #bbbbbb;
+    --red-ui-secondary-border-color: #dddddd;
+    --red-ui-tertiary-border-color: #ccc;
+
+    --red-ui-border-color-error: #DF2935;
+    --red-ui-border-color-warning: #FFCF70;
+    --red-ui-border-color-success: #4B8400;
+
+    /* Form Colors */
+    --red-ui-form-background: #fff;
+    --red-ui-form-placeholder-color: #aaa;
+    --red-ui-form-text-color: #555;
+    --red-ui-form-text-color-disabled: #bbb;
+    --red-ui-form-input-focus-color: rgba(85,150,230,0.8);
+    --red-ui-form-input-border-color: #ccc;
+    --red-ui-form-input-border-selected-color: #aaa;
+    --red-ui-form-input-border-error-color: rgb(214, 97, 95);
+    --red-ui-form-input-background: #fff;
+    --red-ui-form-input-background-disabled: #f9f9f9;
+    --red-ui-form-button-background: #efefef;
+    --red-ui-form-tips-background: #ffe;
+
+    /* Tabs */
+    --red-ui-tab-text-color-active: #444;
+    --red-ui-tab-text-color-inactive: #666;
+    --red-ui-tab-text-color-disabled-active: #999;
+    --red-ui-tab-text-color-disabled-inactive: #aaa;
+    --red-ui-tab-badge-color: #aaa;
+    --red-ui-tab-background: #fff;
+    --red-ui-tab-background-active: #fff;
+    --red-ui-tab-background-selected: #efefef;
+    --red-ui-tab-background-inactive: #f0f0f0;
+    --red-ui-tab-background-hover: #e6e6e6;
+    --red-ui-tab-icon-color: #dedede;
+
+    /* Palette */
+    --red-ui-palette-header-background: #f3f3f3;
+    --red-ui-palette-header-color: #444;
+    --red-ui-palette-content-background: #fff;
+
+    /* Workspace Buttons */
+    --red-ui-workspace-button-background: #fff;
+    --red-ui-workspace-button-background-hover: #e6e6e6;
+    --red-ui-workspace-button-background-active: #efefef;
+    --red-ui-workspace-button-color: #888;
+    --red-ui-workspace-button-color-disabled: #bbb;
+    --red-ui-workspace-button-color-focus: #666;
+    --red-ui-workspace-button-color-hover: #666;
+    --red-ui-workspace-button-color-active: #666;
+    --red-ui-workspace-button-color-selected: #666;
+    --red-ui-workspace-button-color-primary: #eee;
+    --red-ui-workspace-button-background-primary: #AD1625;
+    --red-ui-workspace-button-background-primary-hover: #6E0A1E;
+    --red-ui-workspace-button-color-focus-outline: rgba(85,150,230,0.8);
+
+    /* Shade */
+    --red-ui-shade-color: rgba(160,160,160,0.5);
+
+    /* View/Canvas */
+    --red-ui-view-navigator-background: rgba(245,245,245,0.8);
+    --red-ui-view-lasso-stroke: #ff7f0e;
+    --red-ui-view-lasso-fill: rgba(20,125,255,0.1);
+    --red-ui-view-background: #fff;
+    --red-ui-view-grid-color: #eee;
+
+    /* Node Colors */
+    --red-ui-node-label-color: #333;
+    --red-ui-node-port-label-color: #888;
+    --red-ui-node-border: #999;
+    --red-ui-node-border-unknown: #f33;
+    --red-ui-node-border-placeholder: #aaa;
+    --red-ui-node-background-placeholder: #eee;
+    --red-ui-node-port-background: #d9d9d9;
+    --red-ui-node-port-background-hover: #eee;
+    --red-ui-node-icon-color: #fff;
+    --red-ui-node-icon-background-color: rgba(0,0,0,0.05);
+    --red-ui-node-icon-background-color-fill: #000;
+    --red-ui-node-icon-background-color-opacity: 0.05;
+    --red-ui-node-icon-border-color: #000;
+    --red-ui-node-icon-border-color-opacity: 0.1;
+    --red-ui-node-config-background: #f3f3f3;
+    --red-ui-node-link-port-background: #eee;
+
+    /* Node Status Colors */
+    --red-ui-node-status-error-border: rgb(145, 16, 2);
+    --red-ui-node-status-error-background: rgb(255, 102, 0);
+    --red-ui-node-status-changed-border: rgb(28, 102, 140);
+    --red-ui-node-status-changed-background: rgb(0, 188, 255);
+    --red-ui-node-status-colors-red: #c00;
+    --red-ui-node-status-colors-green: #5a8;
+    --red-ui-node-status-colors-yellow: #F9DF31;
+    --red-ui-node-status-colors-blue: #53A3F3;
+    --red-ui-node-status-colors-grey: #d3d3d3;
+
+    /* Selection */
+    --red-ui-node-selected-color: #ff7f0e;
+    --red-ui-port-selected-color: #ff7f0e;
+
+    /* Links/Wires */
+    --red-ui-link-color: #999;
+    --red-ui-link-link-color: #aaa;
+    --red-ui-link-disabled-color: #ccc;
+    --red-ui-link-link-active-color: #ff7f0e;
+    --red-ui-link-unknown-color: #f00;
+
+    /* Deploy Button */
+    --red-ui-deploy-button-color: #eee;
+    --red-ui-deploy-button-color-active: #ccc;
+    --red-ui-deploy-button-color-disabled: #999;
+    --red-ui-deploy-button-background: #8C101C;
+    --red-ui-deploy-button-background-hover: #6E0A1E;
+    --red-ui-deploy-button-background-active: #4C0A17;
+    --red-ui-deploy-button-background-disabled: #444;
+    --red-ui-deploy-button-background-disabled-hover: #555;
+
+    /* Header */
+    --red-ui-header-background: #000;
+    --red-ui-header-accent: #C02020;
+    --red-ui-header-button-background-active: #121212;
+    --red-ui-header-menu-color: #eee;
+    --red-ui-header-menu-color-disabled: #666;
+    --red-ui-header-menu-heading-color: #fff;
+    --red-ui-header-menu-sublabel-color: #aeaeae;
+    --red-ui-header-menu-background: #121212;
+    --red-ui-header-menu-item-hover: #323232;
+    --red-ui-header-menu-item-border-active: #777677;
+
+    /* Popover */
+    --red-ui-popover-background: #333;
+    --red-ui-popover-border: #333;
+    --red-ui-popover-color: #eee;
+
+    /* Debug */
+    --red-ui-debug-message-background: #fff;
+    --red-ui-debug-message-background-hover: #efefef;
+    --red-ui-debug-message-text-color: #333;
+    --red-ui-debug-message-text-color-meta: #a66;
+    --red-ui-debug-message-border: #eee;
+    --red-ui-debug-message-border-hover: #999;
+
+    /* Notifications */
+    --red-ui-notification-border-default: #325C80;
+    --red-ui-notification-border-success: #4B8400;
+    --red-ui-notification-border-warning: #FFCF70;
+    --red-ui-notification-border-error: #DF2935;
+
+    /* Groups */
+    --red-ui-group-default-fill: none;
+    --red-ui-group-default-stroke: #999;
+    --red-ui-group-default-label-color: #a4a4a4;
+
+    /* Grip */
+    --red-ui-grip-color: #ccc;
+
+    /* Drag and Drop */
+    --red-ui-dnd-background: rgba(0,0,0,0.3);
+    --red-ui-dnd-color: #fff;
+}
+
+/* ============================================================
+   Base Styles
+   ============================================================ */
+html, body {
+    font-family: var(--red-ui-primary-font);
+    font-size: var(--red-ui-primary-font-size);
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+    background: var(--red-ui-primary-background);
+    color: var(--red-ui-primary-text-color);
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+a {
+    color: var(--red-ui-text-color-link);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* ============================================================
+   Editor Container
+   ============================================================ */
+.red-ui-editor {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+}
+
+/* ============================================================
+   Header
+   ============================================================ */
+#red-ui-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: var(--red-ui-header-height);
+    background: var(--red-ui-header-background);
+    box-sizing: border-box;
+    padding: 0 0 0 20px;
+    color: var(--red-ui-header-menu-color);
+    font-size: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid var(--red-ui-header-accent);
+    padding-top: 2px;
+    z-index: 100;
+}
+
+span.red-ui-header-logo {
+    float: left;
+    font-size: 30px;
+    line-height: 30px;
+    text-decoration: none;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+}
+
+span.red-ui-header-logo span {
+    vertical-align: middle;
+    font-size: 16px !important;
+    margin-left: 8px;
+}
+
+span.red-ui-header-logo img {
+    height: 32px;
+}
+
+.red-ui-header-toolbar {
+    display: flex;
+    align-items: stretch;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    float: right;
+    height: 100%;
+}
+
+.red-ui-header-toolbar > li {
+    display: inline-flex;
+    align-items: stretch;
+    padding: 0;
+    margin: 0;
+    position: relative;
+}
+
+#red-ui-header .button {
+    height: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    text-align: center;
+    font-size: 20px;
+    padding: 0 12px;
+    text-decoration: none;
+    color: var(--red-ui-header-menu-color);
+    margin: auto 5px;
+    vertical-align: middle;
+    border-left: 2px solid var(--red-ui-header-background);
+    border-right: 2px solid var(--red-ui-header-background);
+    background: transparent;
+    border-top: none;
+    border-bottom: none;
+    cursor: pointer;
+}
+
+#red-ui-header .button:hover {
+    border-color: var(--red-ui-header-menu-item-hover);
+}
+
+#red-ui-header .button:active,
+#red-ui-header .button.active {
+    background: var(--red-ui-header-button-background-active);
+}
+
+#red-ui-header .button:focus {
+    outline: none;
+}
+
+/* Deploy Button */
+.red-ui-deploy-button {
+    background: var(--red-ui-deploy-button-background);
+    color: var(--red-ui-deploy-button-color);
+    border: none;
+    padding: 4px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    height: 32px;
+    border-radius: 0;
+}
+
+.red-ui-deploy-button:hover {
+    background: var(--red-ui-deploy-button-background-hover);
+}
+
+.red-ui-deploy-button:focus {
+    outline: none;
+}
+
+.red-ui-deploy-button:active {
+    background: var(--red-ui-deploy-button-background-active);
+    color: var(--red-ui-deploy-button-color-active);
+}
+
+.red-ui-deploy-button.disabled {
+    cursor: default;
+    background: var(--red-ui-deploy-button-background-disabled);
+    color: var(--red-ui-deploy-button-color-disabled);
+}
+
+.red-ui-deploy-button img {
+    margin-right: 8px;
+    height: 18px;
+}
+
+/* ============================================================
+   Main Container
+   ============================================================ */
+#red-ui-main-container {
+    position: absolute;
+    top: var(--red-ui-header-height);
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+}
+
+/* ============================================================
+   Palette
+   ============================================================ */
+#red-ui-palette {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    background: var(--red-ui-primary-background);
+    width: 180px;
+    text-align: center;
+    user-select: none;
+    border-right: 1px solid var(--red-ui-primary-border-color);
+    transition: width 0.2s ease-in-out;
+    z-index: 10;
+}
+
+#red-ui-palette::before {
+    content: '';
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: 7px;
+    height: 100%;
+    z-index: 4;
+    position: absolute;
+    background-color: var(--red-ui-grip-color);
+    cursor: col-resize;
+}
+
+.red-ui-palette-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.red-ui-palette-search {
+    position: relative;
+    background: var(--red-ui-form-input-background);
+    text-align: center;
+    height: 35px;
+    padding: 3px;
+    border-bottom: 1px solid var(--red-ui-primary-border-color);
+    box-sizing: border-box;
+}
+
+.red-ui-palette-search-input {
+    width: 100%;
+    height: 100%;
+    padding: 5px 8px;
+    border: 1px solid var(--red-ui-form-input-border-color);
+    border-radius: 0;
+    box-sizing: border-box;
+    font-size: 12px;
+}
+
+.red-ui-palette-search-input:focus {
+    outline: none;
+    border-color: var(--red-ui-form-input-focus-color);
+    box-shadow: 0 0 0 1px var(--red-ui-form-input-focus-color);
+}
+
+.red-ui-palette-scroll {
+    position: absolute;
+    top: 35px;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    padding: 0;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+.red-ui-palette-category {
+    border-bottom: 1px solid var(--red-ui-secondary-border-color);
+}
+
+.red-ui-palette-header {
+    position: relative;
+    background: var(--red-ui-palette-header-background);
+    color: var(--red-ui-palette-header-color);
+    cursor: pointer;
+    text-align: left;
+    padding: 9px;
+    font-weight: bold;
+    padding-left: 30px;
+    overflow: hidden;
+    user-select: none;
+    font-size: 12px;
+}
+
+.red-ui-palette-header:hover {
+    background: var(--red-ui-palette-header-background);
+}
+
+.red-ui-palette-header > i {
+    position: absolute;
+    left: 11px;
+    top: 12px;
+    transition: transform 0.2s ease-in-out;
+}
+
+.red-ui-palette-header i.expanded {
+    transform: rotate(0deg);
+}
+
+.red-ui-palette-header i:not(.expanded) {
+    transform: rotate(-90deg);
+}
+
+.red-ui-palette-content {
+    background: var(--red-ui-palette-content-background);
+    padding: 3px;
+}
+
+.red-ui-palette-node {
+    cursor: move;
+    background: var(--red-ui-secondary-background);
+    margin: 10px auto;
+    height: 25px;
+    border-radius: 5px;
+    border: 1px solid var(--red-ui-node-border);
+    background-position: 5% 50%;
+    background-repeat: no-repeat;
+    width: 120px;
+    background-size: contain;
+    position: relative;
+    z-index: 4;
+    display: flex;
+    align-items: center;
+}
+
+.red-ui-palette-node:first-child {
+    margin-top: 15px;
+}
+
+.red-ui-palette-node:last-child {
+    margin-bottom: 15px;
+}
+
+.red-ui-palette-node:hover {
+    border-color: transparent;
+    box-shadow: 0 0 0 2px var(--red-ui-node-selected-color);
+}
+
+.red-ui-palette-label {
+    color: var(--red-ui-node-label-color);
+    font-size: 13px;
+    margin: 4px 0 4px 32px;
+    line-height: 20px;
+    overflow: hidden;
+    text-align: center;
+    user-select: none;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.red-ui-palette-port {
+    position: absolute;
+    top: 8px;
+    left: -5px;
+    box-sizing: border-box;
+    background: var(--red-ui-node-port-background);
+    border-radius: 3px;
+    width: 10px;
+    height: 10px;
+    border: 1px solid var(--red-ui-node-border);
+}
+
+.red-ui-palette-port-output {
+    left: auto;
+    right: -6px;
+}
+
+.red-ui-palette-node:hover .red-ui-palette-port {
+    background-color: var(--red-ui-node-port-background-hover);
+}
+
+.red-ui-palette-icon-container {
+    position: absolute;
+    text-align: center;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 30px;
+    border-right: 1px solid var(--red-ui-node-icon-background-color);
+    border-radius: 4px 0 0 4px;
+    background-color: var(--red-ui-node-icon-background-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.red-ui-palette-icon {
+    display: inline-block;
+    width: 20px;
+    height: 100%;
+    background-position: 50% 50%;
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+/* ============================================================
+   SOURCE: packages/node_modules/@node-red/editor-client/src/sass/palette.scss
+   LINES: 230-235
+   ============================================================ */
+.red-ui-palette-icon-fa {
+    color: white;
+    position: absolute;
+    top: calc(50% - 7px);
+    left: 3px;
+}
+
+/* Palette closed state */
+.red-ui-palette-closed #red-ui-palette {
+    width: 8px;
+}
+
+.red-ui-palette-closed #red-ui-palette .red-ui-component-footer {
+    display: none;
+}
+
+.red-ui-palette-closed #red-ui-palette-search,
+.red-ui-palette-closed #red-ui-palette-container {
+    display: none;
+}
+
+/* ============================================================
+   Workspace
+   ============================================================ */
+#red-ui-workspace {
+    position: absolute;
+    margin: 0;
+    top: 0;
+    left: 179px;
+    bottom: 0;
+    right: 322px;
+    overflow: hidden;
+    border-left: 1px solid var(--red-ui-primary-border-color);
+    border-right: 1px solid var(--red-ui-primary-border-color);
+    transition: left 0.1s ease-in-out;
+}
+
+.red-ui-sidebar-closed #red-ui-workspace {
+    right: 7px;
+}
+
+.red-ui-palette-closed #red-ui-workspace {
+    left: 7px;
+}
+
+.red-ui-workspace-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ============================================================
+   Tabs
+   ============================================================ */
+.red-ui-tabs,
+.red-ui-workspace-tabs {
+    position: relative;
+    background: var(--red-ui-tab-background);
+    overflow: hidden;
+    height: 35px;
+    box-sizing: border-box;
+}
+
+.red-ui-tabs ul,
+.red-ui-workspace-tabs ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    display: block;
+    height: 35px;
+    box-sizing: border-box;
+    border-bottom: 1px solid var(--red-ui-primary-border-color);
+    white-space: nowrap;
+    user-select: none;
+}
+
+.red-ui-tab {
+    box-sizing: border-box;
+    display: inline-block;
+    border-left: 1px solid var(--red-ui-primary-border-color);
+    border-top: 1px solid var(--red-ui-primary-border-color);
+    border-right: 1px solid var(--red-ui-primary-border-color);
+    border-bottom: 1px solid var(--red-ui-primary-border-color);
+    background: var(--red-ui-tab-background-inactive);
+    margin: 3px 3px 0 3px;
+    height: 32px;
+    line-height: 29px;
+    max-width: 200px;
+    width: 14%;
+    overflow: hidden;
+    white-space: nowrap;
+    position: relative;
+    cursor: pointer;
+    padding: 0 12px;
+    font-size: 13px;
+}
+
+.red-ui-tab a.red-ui-tab-label {
+    display: block;
+    color: var(--red-ui-tab-text-color-inactive);
+    text-decoration: none;
+}
+
+.red-ui-tab.active {
+    background: var(--red-ui-tab-background-active);
+    font-weight: bold;
+    border-bottom: 1px solid var(--red-ui-tab-background-active);
+    z-index: 2;
+}
+
+.red-ui-tab.active a,
+.red-ui-tab.active span {
+    color: var(--red-ui-tab-text-color-active);
+}
+
+.red-ui-tab:not(.active):hover {
+    background: var(--red-ui-tab-background-hover);
+}
+
+.red-ui-tab:not(.active):hover a,
+.red-ui-tab:not(.active):hover span {
+    color: var(--red-ui-workspace-button-color-hover);
+}
+
+.red-ui-tab-button {
+    position: absolute;
+    box-sizing: border-box;
+    top: 0;
+    right: 0;
+    height: 35px;
+    background: var(--red-ui-tab-background);
+    border-bottom: 1px solid var(--red-ui-primary-border-color);
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    cursor: pointer;
+    color: var(--red-ui-workspace-button-color);
+}
+
+.red-ui-tab-button:hover {
+    background: var(--red-ui-workspace-button-background-hover);
+    color: var(--red-ui-workspace-button-color-hover);
+}
+
+/* ============================================================
+   Workspace Chart/Canvas
+   ============================================================ */
+.red-ui-workspace-chart,
+#red-ui-workspace-chart {
+    position: absolute;
+    bottom: 26px;
+    top: 35px;
+    left: 0;
+    right: 0;
+    overflow: auto;
+    box-sizing: border-box;
+    transition: right 0.2s ease;
+    background: var(--red-ui-view-background);
+}
+
+.red-ui-workspace-chart:focus {
+    outline: none;
+}
+
+.red-ui-workspace-chart-background {
+    fill: var(--red-ui-view-background);
+}
+
+.red-ui-workspace-chart-grid line {
+    fill: none;
+    shape-rendering: crispEdges;
+    stroke: var(--red-ui-view-grid-color);
+    stroke-width: 1px;
+}
+
+.red-ui-workspace-chart-svg {
+    display: block;
+}
+
+/* ============================================================
+   Flow/Node Rendering
+   ============================================================ */
+.red-ui-flow-node,
+.red-ui-workspace-node-body {
+    stroke: var(--red-ui-node-border);
+    cursor: move;
+    stroke-width: 1;
+}
+
+.red-ui-flow-node-label,
+.red-ui-workspace-node-label {
+    stroke-width: 0;
+    fill: var(--red-ui-node-label-color);
+    font-size: 14px;
+    pointer-events: none;
+    user-select: none;
+}
+
+.red-ui-flow-port,
+.red-ui-workspace-port-input,
+.red-ui-workspace-port-output {
+    stroke: var(--red-ui-node-border);
+    stroke-width: 1;
+    fill: var(--red-ui-node-port-background);
+    cursor: crosshair;
+}
+
+.red-ui-flow-node-selected .red-ui-flow-node,
+.red-ui-workspace-node.selected .red-ui-workspace-node-body,
+g.red-ui-flow-node-selected .red-ui-flow-node {
+    stroke-width: 2;
+    stroke: var(--red-ui-node-selected-color) !important;
+}
+
+/* ============================================================
+   Links/Wires
+   SOURCE: packages/node_modules/@node-red/editor-client/src/sass/flow.scss
+   LINES: 355-423
+   ============================================================ */
+.red-ui-flow-link-line {
+    stroke: var(--red-ui-link-color);
+    stroke-width: 3;
+    fill: none;
+    pointer-events: none;
+}
+
+.red-ui-flow-drag-line {
+    stroke: var(--red-ui-node-selected-color) !important;
+    stroke-width: 3;
+    fill: none;
+    pointer-events: none;
+}
+
+.red-ui-flow-link-background {
+    stroke: var(--red-ui-view-background);
+    opacity: 0;
+    stroke-width: 20;
+    cursor: crosshair;
+    fill: none;
+}
+
+.red-ui-flow-link-outline {
+    stroke: var(--red-ui-view-background);
+    stroke-opacity: 0.4;
+    stroke-width: 5;
+    cursor: crosshair;
+    fill: none;
+    pointer-events: none;
+}
+
+g.red-ui-flow-link-selected path.red-ui-flow-link-line {
+    stroke: var(--red-ui-node-selected-color);
+}
+
+/* Virtual wires (link nodes) */
+.red-ui-flow-link-link {
+    stroke-width: 2;
+    stroke: var(--red-ui-link-link-color);
+    fill: none;
+    stroke-dasharray: 25, 4;
+}
+
+.red-ui-flow-link-port {
+    fill: var(--red-ui-node-link-port-background);
+    stroke: var(--red-ui-link-link-color);
+    stroke-width: 1;
+}
+
+/* Wire drawing preview */
+.red-ui-workspace-wire-drawing {
+    stroke: #aaa;
+    stroke-width: 3;
+    stroke-dasharray: 5, 5;
+    fill: none;
+    pointer-events: none;
+}
+
+/* Backward compatibility */
+.red-ui-workspace-wire {
+    stroke: var(--red-ui-link-color);
+    stroke-width: 3;
+    fill: none;
+    pointer-events: stroke;
+    cursor: pointer;
+}
+
+.red-ui-workspace-wire:hover {
+    stroke-width: 4;
+}
+
+.red-ui-workspace-wire.selected {
+    stroke: var(--red-ui-node-selected-color);
+}
+
+/* Lasso selection */
+.nr-ui-view-lasso,
+.red-ui-workspace-lasso {
+    stroke-width: 1px;
+    stroke: var(--red-ui-view-lasso-stroke);
+    fill: var(--red-ui-view-lasso-fill);
+    stroke-dasharray: 10 5;
+}
+
+/* Node status */
+.red-ui-flow-node-status-label,
+.red-ui-workspace-node-status {
+    user-select: none;
+    stroke-width: 0;
+    fill: var(--red-ui-secondary-text-color);
+    font-size: 9pt;
+    text-anchor: start;
+}
+
+/* Status dot colors */
+.red-ui-flow-node-status-dot-red { fill: var(--red-ui-node-status-colors-red); stroke: var(--red-ui-node-status-colors-red); }
+.red-ui-flow-node-status-dot-green { fill: var(--red-ui-node-status-colors-green); stroke: var(--red-ui-node-status-colors-green); }
+.red-ui-flow-node-status-dot-yellow { fill: var(--red-ui-node-status-colors-yellow); stroke: var(--red-ui-node-status-colors-yellow); }
+.red-ui-flow-node-status-dot-blue { fill: var(--red-ui-node-status-colors-blue); stroke: var(--red-ui-node-status-colors-blue); }
+.red-ui-flow-node-status-dot-grey { fill: var(--red-ui-node-status-colors-grey); stroke: var(--red-ui-node-status-colors-grey); }
+
+/* ============================================================
+   Sidebar
+   ============================================================ */
+#red-ui-sidebar {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 315px;
+    background: var(--red-ui-primary-background);
+    box-sizing: border-box;
+    z-index: 10;
+    border-left: 1px solid var(--red-ui-primary-border-color);
+}
+
+#red-ui-sidebar.closing {
+    border-style: dashed;
+}
+
+.red-ui-sidebar-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+#red-ui-sidebar-content,
+.red-ui-sidebar-content {
+    position: absolute;
+    background: var(--red-ui-secondary-background);
+    top: 35px;
+    right: 0;
+    bottom: 25px;
+    left: 0;
+    overflow-y: auto;
+}
+
+.red-ui-sidebar-closed #red-ui-sidebar {
+    display: none;
+}
+
+/* ============================================================
+   SOURCE: packages/node_modules/@node-red/editor-client/src/sass/sidebar.scss
+   LINES: 45-70
+   ============================================================ */
+#red-ui-sidebar-separator {
+    position: absolute;
+    top: 5px;
+    right: 315px;
+    bottom: 10px;
+    width: 7px;
+    background-color: var(--red-ui-primary-background);
+    cursor: col-resize;
+}
+
+#red-ui-sidebar-separator::before {
+    content: '';
+    display: block;
+    width: 100%;
+    height: 100%;
+    background-color: var(--red-ui-grip-color);
+}
+
+.red-ui-sidebar-closed #red-ui-sidebar-separator {
+    right: 0 !important;
+}
+
+/* Sidebar tabs */
+.red-ui-sidebar-tabs {
+    position: relative;
+    background: var(--red-ui-tab-background);
+    height: 35px;
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-bottom: 1px solid var(--red-ui-primary-border-color);
+}
+
+.red-ui-sidebar-tabs li {
+    padding: 8px 15px;
+    cursor: pointer;
+    color: var(--red-ui-secondary-text-color);
+    border-bottom: 2px solid transparent;
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+}
+
+.red-ui-sidebar-tabs li:hover {
+    color: var(--red-ui-secondary-text-color-hover);
+    background: var(--red-ui-secondary-background-hover);
+}
+
+.red-ui-sidebar-tabs li.active {
+    color: var(--red-ui-tab-text-color-active);
+    border-bottom-color: var(--red-ui-header-accent);
+}
+
+/* Sidebar header */
+.red-ui-sidebar-header {
+    color: var(--red-ui-primary-text-color);
+    text-align: right;
+    padding: 8px 10px;
+    background: var(--red-ui-primary-background);
+    border-bottom: 1px solid var(--red-ui-secondary-border-color);
+    white-space: nowrap;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.red-ui-sidebar-header-button {
+    background: var(--red-ui-workspace-button-background);
+    border: 1px solid var(--red-ui-tertiary-border-color);
+    color: var(--red-ui-workspace-button-color);
+    font-size: 13px;
+    line-height: 13px;
+    padding: 5px 8px;
+    cursor: pointer;
+}
+
+.red-ui-sidebar-header-button:hover {
+    background: var(--red-ui-workspace-button-background-hover);
+    color: var(--red-ui-workspace-button-color-hover);
+}
+
+/* Sidebar content panels */
+.red-ui-sidebar-info-content,
+.red-ui-debug-content,
+.red-ui-config-content {
+    padding: 10px;
+}
+
+.red-ui-info-outline h4 {
+    margin: 0 0 10px 0;
+    color: var(--red-ui-header-text-color);
+}
+
+.red-ui-info-outline dl {
+    margin: 0;
+}
+
+.red-ui-info-outline dt {
+    font-weight: bold;
+    color: var(--red-ui-secondary-text-color);
+    margin-top: 10px;
+    font-size: 12px;
+}
+
+.red-ui-info-outline dd {
+    margin: 0;
+    padding-left: 10px;
+    color: var(--red-ui-primary-text-color);
+}
+
+/* Debug messages */
+.red-ui-debug-msg {
+    padding: 8px;
+    border-bottom: 1px solid var(--red-ui-debug-message-border);
+    background: var(--red-ui-debug-message-background);
+    font-size: 12px;
+}
+
+.red-ui-debug-msg:hover {
+    background: var(--red-ui-debug-message-background-hover);
+    border-color: var(--red-ui-debug-message-border-hover);
+}
+
+.red-ui-debug-msg-date {
+    color: var(--red-ui-debug-message-text-color-meta);
+    font-size: 11px;
+    margin-right: 10px;
+}
+
+.red-ui-debug-msg-topic {
+    color: var(--red-ui-secondary-text-color);
+    margin-right: 10px;
+}
+
+.red-ui-debug-msg-payload {
+    color: var(--red-ui-debug-message-text-color);
+    font-family: var(--red-ui-monospace-font);
+}
+
+.red-ui-debug-empty,
+.red-ui-config-empty {
+    color: var(--red-ui-tertiary-text-color);
+    text-align: center;
+    padding: 20px;
+}
+
+/* ============================================================
+   Tray / Editor Panel
+   ============================================================ */
+.red-ui-tray {
+    position: fixed;
+    top: var(--red-ui-header-height);
+    right: -500px;
+    width: 500px;
+    height: calc(100vh - var(--red-ui-header-height));
+    background: var(--red-ui-secondary-background);
+    box-shadow: -2px 0 10px var(--red-ui-shadow);
+    transition: right 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+}
+
+.red-ui-tray.open {
+    right: 0;
+}
+
+.red-ui-tray-header {
+    background: var(--red-ui-header-accent);
+    color: var(--red-ui-header-menu-heading-color);
+}
+
+.red-ui-tray-titlebar {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    min-height: 40px;
+}
+
+.red-ui-tray-toolbar {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+}
+
+.red-ui-tray-close {
+    background: none;
+    border: none;
+    color: var(--red-ui-header-menu-heading-color);
+    cursor: pointer;
+    padding: 5px 10px;
+    font-size: 18px;
+}
+
+.red-ui-tray-close:hover {
+    opacity: 0.8;
+}
+
+.red-ui-tray-title {
+    flex: 1;
+    margin-left: 10px;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.red-ui-tray-body {
+    flex: 1;
+    overflow-y: auto;
+    background: var(--red-ui-secondary-background);
+}
+
+.red-ui-tray-content {
+    padding: 15px;
+}
+
+.red-ui-tray-footer {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    border-top: 1px solid var(--red-ui-secondary-border-color);
+    background: var(--red-ui-primary-background);
+}
+
+/* ============================================================
+   Buttons
+   ============================================================ */
+.red-ui-button {
+    display: inline-block;
+    padding: 8px 15px;
+    border: 1px solid var(--red-ui-tertiary-border-color);
+    border-radius: 0;
+    background: var(--red-ui-workspace-button-background);
+    color: var(--red-ui-workspace-button-color);
+    cursor: pointer;
+    font-size: 13px;
+    line-height: 1;
+    text-decoration: none;
+}
+
+.red-ui-button:hover {
+    background: var(--red-ui-workspace-button-background-hover);
+    color: var(--red-ui-workspace-button-color-hover);
+}
+
+.red-ui-button:active {
+    background: var(--red-ui-workspace-button-background-active);
+}
+
+.red-ui-button:focus {
+    outline: none;
+    box-shadow: 0 0 0 1px var(--red-ui-workspace-button-color-focus-outline);
+}
+
+.red-ui-button-primary {
+    background: var(--red-ui-workspace-button-background-primary);
+    color: var(--red-ui-workspace-button-color-primary);
+    border-color: var(--red-ui-workspace-button-background-primary);
+}
+
+.red-ui-button-primary:hover {
+    background: var(--red-ui-workspace-button-background-primary-hover);
+}
+
+.red-ui-button-danger {
+    background: var(--red-ui-text-color-error);
+    color: #fff;
+    border-color: var(--red-ui-text-color-error);
+}
+
+.red-ui-button-danger:hover {
+    opacity: 0.9;
+}
+
+/* ============================================================
+   Forms
+   ============================================================ */
+.red-ui-node-editor,
+.red-ui-form {
+    font-size: 14px;
+}
+
+.red-ui-form-row {
+    margin-bottom: 15px;
+}
+
+.red-ui-form-row label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: var(--red-ui-secondary-text-color);
+    font-size: 13px;
+}
+
+.red-ui-form-row input[type="text"],
+.red-ui-form-row input[type="number"],
+.red-ui-form-row input[type="password"],
+.red-ui-form-row select,
+.red-ui-form-row textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--red-ui-form-input-border-color);
+    border-radius: 0;
+    box-sizing: border-box;
+    font-family: var(--red-ui-primary-font);
+    font-size: 14px;
+    color: var(--red-ui-form-text-color);
+    background: var(--red-ui-form-input-background);
+}
+
+.red-ui-form-row input:focus,
+.red-ui-form-row select:focus,
+.red-ui-form-row textarea:focus {
+    outline: none;
+    border-color: var(--red-ui-form-input-focus-color);
+    box-shadow: 0 0 0 1px var(--red-ui-form-input-focus-color);
+}
+
+.red-ui-form-row textarea {
+    font-family: var(--red-ui-monospace-font);
+    resize: vertical;
+    min-height: 100px;
+}
+
+.red-ui-form-row input:disabled,
+.red-ui-form-row select:disabled,
+.red-ui-form-row textarea:disabled {
+    background: var(--red-ui-form-input-background-disabled);
+    color: var(--red-ui-form-text-color-disabled);
+}
+
+.red-ui-form-hint,
+.red-ui-form-tips {
+    color: var(--red-ui-tertiary-text-color);
+    font-size: 12px;
+    margin: 5px 0 0 0;
+    background: var(--red-ui-form-tips-background);
+    padding: 5px 8px;
+}
+
+/* ============================================================
+   Loading Progress
+   ============================================================ */
+#red-ui-loading-progress {
+    position: absolute;
+    background: var(--red-ui-primary-background);
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    z-index: 200;
+}
+
+#red-ui-loading-progress > div {
+    position: absolute;
+    top: 30%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 300px;
+    height: 80px;
+    text-align: center;
+    color: var(--red-ui-secondary-text-color);
+}
+
+.red-ui-loading-bar {
+    box-sizing: border-box;
+    width: 300px;
+    height: 30px;
+    border: 2px solid var(--red-ui-primary-border-color);
+    border-radius: 4px;
+}
+
+.red-ui-loading-bar > span {
+    display: block;
+    height: 100%;
+    background: var(--red-ui-secondary-border-color);
+    transition: width 0.2s;
+    width: 10%;
+}
+
+.red-ui-loading-bar-label {
+    font-size: 13px;
+    margin-bottom: 5px;
+}
+
+/* ============================================================
+   Shade Overlay
+   ============================================================ */
+#red-ui-full-shade {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--red-ui-shade-color);
+    z-index: 999;
+}
+
+/* ============================================================
+   Utility Classes
+   ============================================================ */
+.hide {
+    display: none !important;
+}
+
+.invisible {
+    visibility: hidden !important;
+}
+
+/* ============================================================
+   Font Awesome Icons - Using FontAwesome 4.7 compatible unicode codes
+   Note: For production, include Font Awesome via CDN in _Host.cshtml
+   This section provides fallback definitions using ASCII/basic symbols
+   ============================================================ */
+
+/* FontAwesome 4.7 font-face definition */
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css');
+
+.fa {
+    display: inline-block;
+    font: normal normal normal 14px/1 FontAwesome;
+    font-size: inherit;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* FontAwesome unicode values (FA 4.7) */
+.fa-bars::before { content: "\f0c9"; }
+.fa-info::before { content: "\f129"; }
+.fa-info-circle::before { content: "\f05a"; }
+.fa-bug::before { content: "\f188"; }
+.fa-cog::before { content: "\f013"; }
+.fa-cogs::before { content: "\f085"; }
+.fa-times::before { content: "\f00d"; }
+.fa-plus::before { content: "\f067"; }
+.fa-trash::before { content: "\f1f8"; }
+.fa-trash-o::before { content: "\f014"; }
+.fa-angle-down::before { content: "\f107"; }
+.fa-angle-right::before { content: "\f105"; }
+.fa-angle-left::before { content: "\f104"; }
+.fa-angle-up::before { content: "\f106"; }
+.fa-ban::before { content: "\f05e"; }
+.fa-check::before { content: "\f00c"; }
+.fa-search::before { content: "\f002"; }
+.fa-save::before { content: "\f0c7"; }
+.fa-upload::before { content: "\f093"; }
+.fa-download::before { content: "\f019"; }
+.fa-rocket::before { content: "\f135"; }
+.fa-play::before { content: "\f04b"; }
+.fa-pause::before { content: "\f04c"; }
+.fa-stop::before { content: "\f04d"; }
+.fa-lock::before { content: "\f023"; }
+.fa-unlock::before { content: "\f09c"; }
+.fa-eye::before { content: "\f06e"; }
+.fa-eye-slash::before { content: "\f070"; }
+.fa-warning::before, .fa-exclamation-triangle::before { content: "\f071"; }
+.fa-question-circle::before { content: "\f059"; }
+.fa-refresh::before { content: "\f021"; }
+.fa-spinner::before { content: "\f110"; }
+.fa-circle::before { content: "\f111"; }
+.fa-circle-o::before { content: "\f10c"; }
+.fa-chevron-down::before { content: "\f078"; }
+.fa-chevron-up::before { content: "\f077"; }
+.fa-chevron-left::before { content: "\f053"; }
+.fa-chevron-right::before { content: "\f054"; }
+.fa-caret-down::before { content: "\f0d7"; }
+.fa-caret-up::before { content: "\f0d8"; }
+.fa-caret-left::before { content: "\f0d9"; }
+.fa-caret-right::before { content: "\f0da"; }
+.fa-list::before { content: "\f03a"; }
+.fa-user::before { content: "\f007"; }
+.fa-sign-out::before { content: "\f08b"; }
+.fa-external-link::before { content: "\f08e"; }
+.fa-link::before { content: "\f0c1"; }
+.fa-pencil::before { content: "\f040"; }
+.fa-copy::before, .fa-files-o::before { content: "\f0c5"; }
+.fa-cut::before, .fa-scissors::before { content: "\f0c4"; }
+.fa-paste::before, .fa-clipboard::before { content: "\f0ea"; }
+.fa-undo::before { content: "\f0e2"; }
+.fa-redo::before, .fa-repeat::before { content: "\f01e"; }
+.fa-arrow-right::before { content: "\f061"; }
+.fa-arrow-left::before { content: "\f060"; }
+.fa-arrow-up::before { content: "\f062"; }
+.fa-arrow-down::before { content: "\f063"; }
+.fa-long-arrow-right::before { content: "\f178"; }
+.fa-long-arrow-left::before { content: "\f177"; }
+.fa-exchange::before { content: "\f0ec"; }
+.fa-random::before { content: "\f074"; }
+.fa-object-group::before { content: "\f247"; }
+.fa-object-ungroup::before { content: "\f248"; }
+.fa-sitemap::before { content: "\f0e8"; }
+.fa-code::before { content: "\f121"; }
+.fa-terminal::before { content: "\f120"; }
+.fa-file::before { content: "\f15b"; }
+.fa-file-o::before { content: "\f016"; }
+.fa-file-text::before { content: "\f15c"; }
+.fa-folder::before { content: "\f07b"; }
+.fa-folder-open::before { content: "\f07c"; }
+.fa-keyboard-o::before { content: "\f11c"; }
+.fa-globe::before { content: "\f0ac"; }
+.fa-envelope::before { content: "\f0e0"; }
+.fa-database::before { content: "\f1c0"; }
+.fa-clock-o::before { content: "\f017"; }
+.fa-calendar::before { content: "\f073"; }
+.fa-bell::before { content: "\f0f3"; }
+.fa-flag::before { content: "\f024"; }
+.fa-filter::before { content: "\f0b0"; }
+.fa-sort::before { content: "\f0dc"; }
+.fa-wrench::before { content: "\f0ad"; }
+.fa-bolt::before { content: "\f0e7"; }
+.fa-magic::before { content: "\f0d0"; }
+.fa-cube::before { content: "\f1b2"; }
+.fa-cubes::before { content: "\f1b3"; }
+.fa-share-alt::before { content: "\f1e0"; }
+.fa-wifi::before { content: "\f1eb"; }
+
+/* Spinning animation for fa-spinner */
+.fa-spin {
+    animation: fa-spin 2s infinite linear;
+}
+
+@keyframes fa-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ============================================================
+   Component Footer
+   ============================================================ */
+.red-ui-component-footer {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 25px;
+    background: var(--red-ui-primary-background);
+    border-top: 1px solid var(--red-ui-primary-border-color);
+    padding: 0 5px;
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    color: var(--red-ui-secondary-text-color);
+}
+
+.red-ui-footer-button {
+    background: var(--red-ui-workspace-button-background);
+    border: 1px solid var(--red-ui-tertiary-border-color);
+    color: var(--red-ui-workspace-button-color);
+    padding: 2px 8px;
+    font-size: 12px;
+    cursor: pointer;
+    margin: 0 2px;
+}
+
+.red-ui-footer-button:hover {
+    background: var(--red-ui-workspace-button-background-hover);
+    color: var(--red-ui-workspace-button-color-hover);
+}
+
+/* ============================================================
+   Editor Stack
+   ============================================================ */
+#red-ui-editor-stack {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 0;
+    z-index: 100;
+}
+
+#red-ui-editor-stack:focus {
+    outline: none;
+}
+
+/* ============================================================
+   Notifications
+   ============================================================ */
+.red-ui-notifications {
+    position: fixed;
+    top: calc(var(--red-ui-header-height) + 10px);
+    right: 10px;
+    z-index: 2000;
+}
+
+.red-ui-notification {
+    background: var(--red-ui-secondary-background);
+    border-left: 4px solid var(--red-ui-notification-border-default);
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 10px var(--red-ui-shadow);
+    max-width: 400px;
+    animation: slideIn 0.3s ease;
+}
+
+.red-ui-notification-success {
+    border-left-color: var(--red-ui-notification-border-success);
+}
+
+.red-ui-notification-warning {
+    border-left-color: var(--red-ui-notification-border-warning);
+}
+
+.red-ui-notification-error {
+    border-left-color: var(--red-ui-notification-border-error);
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+/* ============================================================
+   Popover
+   ============================================================ */
+.red-ui-popover {
+    position: absolute;
+    background: var(--red-ui-popover-background);
+    border: 1px solid var(--red-ui-popover-border);
+    color: var(--red-ui-popover-color);
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    z-index: 1500;
+    max-width: 300px;
+    box-shadow: 0 2px 10px var(--red-ui-shadow);
+}
+
+/* ============================================================
+   SOURCE: packages/node_modules/@node-red/editor-client/src/sass/menu.scss
+   Context Menu - Pixel-perfect translation
+   ============================================================ */
+.red-ui-context-menu {
+    position: fixed;
+    background: var(--red-ui-secondary-background);
+    border: 1px solid var(--red-ui-primary-border-color);
+    border-radius: 4px;
+    box-shadow: 0 4px 15px var(--red-ui-shadow);
+    z-index: 2000;
+    min-width: 180px;
+    padding: 4px 0;
+    font-size: 13px;
+}
+
+.red-ui-context-menu-item {
+    padding: 6px 30px 6px 35px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: relative;
+    color: var(--red-ui-primary-text-color);
+}
+
+.red-ui-context-menu-item:hover {
+    background: var(--red-ui-secondary-background-hover);
+}
+
+.red-ui-context-menu-item.disabled {
+    color: var(--red-ui-secondary-text-color-disabled);
+    cursor: default;
+}
+
+.red-ui-context-menu-item.disabled:hover {
+    background: transparent;
+}
+
+.red-ui-context-menu-item i {
+    position: absolute;
+    left: 10px;
+    width: 16px;
+    text-align: center;
+    color: var(--red-ui-secondary-text-color);
+}
+
+.red-ui-context-menu-shortcut {
+    margin-left: auto;
+    color: var(--red-ui-tertiary-text-color);
+    font-size: 11px;
+}
+
+.red-ui-context-menu-separator {
+    height: 1px;
+    background: var(--red-ui-secondary-border-color);
+    margin: 4px 0;
+}
+
+/* ============================================================
+   Palette Enhancements
+   ============================================================ */
+.red-ui-palette-search {
+    position: relative;
+}
+
+.red-ui-palette-search i.fa-search {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--red-ui-tertiary-text-color);
+}
+
+.red-ui-palette-search-input {
+    padding-left: 30px !important;
+}
+
+.red-ui-palette-search-clear {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--red-ui-tertiary-text-color);
+    padding: 4px;
+}
+
+.red-ui-palette-search-clear:hover {
+    color: var(--red-ui-primary-text-color);
+}
+
+.red-ui-palette-header-count {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--red-ui-tertiary-text-color);
+}
+
+.red-ui-palette-node {
+    position: relative;
+    overflow: hidden;
+}
+
+.red-ui-palette-node-stripe {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 7px;
+    border-radius: 5px 0 0 5px;
+}
+
+.red-ui-palette-node-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: FontAwesome, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 14px;
+    width: 16px;
+    text-align: center;
+}
+
+.red-ui-palette-label {
+    margin-left: 30px;
+}
+
+.red-ui-palette-port {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: var(--red-ui-port-background);
+    border: 1px solid var(--red-ui-port-border-color);
+    border-radius: 2px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.red-ui-palette-port-input {
+    left: -5px;
+}
+
+.red-ui-palette-port-output {
+    right: -5px;
+}
+
+/* ============================================================
+   Wire Drawing
+   ============================================================ */
+.red-ui-workspace-wire-drawing {
+    pointer-events: none;
+}
+
+/* ============================================================
+   Node Stripe (type indicator on left edge)
+   ============================================================ */
+.red-ui-workspace-node-stripe {
+    pointer-events: none;
+}
+
+.red-ui-workspace-node-icon {
+    fill: var(--red-ui-primary-text-color);
+    pointer-events: none;
+}
+
+/* ============================================================
+   Notifications
+   ============================================================ */
+.red-ui-notifications {
+    position: fixed;
+    top: calc(var(--red-ui-header-height) + 10px);
+    right: 10px;
+    z-index: 3000;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.red-ui-notification {
+    background: var(--red-ui-secondary-background);
+    border: 1px solid var(--red-ui-primary-border-color);
+    border-radius: 4px;
+    box-shadow: 0 4px 15px var(--red-ui-shadow);
+    padding: 10px 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 250px;
+    animation: slideIn 0.3s ease;
+    transition: opacity 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.red-ui-notification-info {
+    border-left: 4px solid var(--red-ui-text-color-link);
+}
+
+.red-ui-notification-success {
+    border-left: 4px solid var(--red-ui-text-color-success);
+}
+
+.red-ui-notification-warning {
+    border-left: 4px solid var(--red-ui-text-color-warning);
+}
+
+.red-ui-notification-error {
+    border-left: 4px solid var(--red-ui-text-color-error);
+}
+
+.red-ui-notification-message {
+    flex: 1;
+    font-size: 13px;
+}
+
+.red-ui-notification-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--red-ui-tertiary-text-color);
+    font-size: 16px;
+    padding: 0;
+    line-height: 1;
+}
+
+.red-ui-notification-close:hover {
+    color: var(--red-ui-primary-text-color);
+}
+
+/* ============================================================
+   Drag Preview
+   ============================================================ */
+.red-ui-palette-node-drag-preview {
+    position: fixed;
+    pointer-events: none;
+    background: #ddd;
+    border: 1px solid #999;
+    border-radius: 5px;
+    padding: 5px 10px;
+    font-size: 12px;
+    z-index: 10000;
+    opacity: 0.8;
+}
+
+/* ============================================================
+   Dialog Styles (from dialog.scss)
+   ============================================================ */
+.red-ui-dialog {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+}
+
+.red-ui-dialog.open {
+    display: block;
+}
+
+.red-ui-dialog-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.red-ui-dialog-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--red-ui-secondary-background);
+    border-radius: 4px;
+    box-shadow: 0 4px 20px var(--red-ui-shadow);
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.red-ui-dialog-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 15px;
+    border-bottom: 1px solid var(--red-ui-secondary-border-color);
+    background: var(--red-ui-tertiary-background);
+    border-radius: 4px 4px 0 0;
+}
+
+.red-ui-dialog-title {
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--red-ui-primary-text-color);
+}
+
+.red-ui-dialog-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    color: var(--red-ui-tertiary-text-color);
+    padding: 0;
+    line-height: 1;
+}
+
+.red-ui-dialog-close:hover {
+    color: var(--red-ui-primary-text-color);
+}
+
+.red-ui-dialog-content {
+    padding: 15px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.red-ui-dialog-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 10px 15px;
+    border-top: 1px solid var(--red-ui-secondary-border-color);
+    background: var(--red-ui-tertiary-background);
+    border-radius: 0 0 4px 4px;
+}
+
+/* ============================================================
+   Import Dialog Styles
+   ============================================================ */
+.red-ui-import-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.red-ui-import-text-row label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 13px;
+    color: var(--red-ui-secondary-text-color);
+}
+
+.red-ui-import-textarea,
+.red-ui-export-textarea {
+    width: 100%;
+    font-family: var(--red-ui-monospace-font);
+    font-size: 12px;
+    border: 1px solid var(--red-ui-form-input-border-color);
+    border-radius: 3px;
+    padding: 8px;
+    resize: vertical;
+    box-sizing: border-box;
+}
+
+.red-ui-import-textarea:focus,
+.red-ui-export-textarea:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--red-ui-form-input-focus-color);
+}
+
+.red-ui-import-file-row {
+    display: flex;
+    align-items: center;
+}
+
+.red-ui-import-options {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.red-ui-import-options > label {
+    font-weight: 500;
+    font-size: 13px;
+    color: var(--red-ui-primary-text-color);
+}
+
+.red-ui-import-option,
+.red-ui-export-option {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+}
+
+.red-ui-import-option input[type="radio"],
+.red-ui-export-option input[type="radio"] {
+    margin: 0;
+}
+
+.red-ui-import-error {
+    background: rgba(214, 97, 95, 0.1);
+    border: 1px solid var(--red-ui-border-color-error);
+    border-radius: 3px;
+    padding: 8px 10px;
+    color: var(--red-ui-text-color-error);
+    font-size: 13px;
+}
+
+/* ============================================================
+   Export Dialog Styles
+   ============================================================ */
+.red-ui-export-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.red-ui-export-options {
+    display: flex;
+    gap: 30px;
+}
+
+.red-ui-export-scope,
+.red-ui-export-format {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.red-ui-export-scope > label,
+.red-ui-export-format > label {
+    font-weight: 500;
+    font-size: 13px;
+    color: var(--red-ui-primary-text-color);
+}
+
+.red-ui-export-option label.disabled {
+    color: var(--red-ui-secondary-text-color-disabled);
+}
+
+/* ============================================================
+   Search Dialog Styles (from search.scss)
+   ============================================================ */
+.red-ui-search {
+    position: fixed;
+    top: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9998;
+    width: 500px;
+}
+
+.red-ui-search-container {
+    background: var(--red-ui-secondary-background);
+    border-radius: 4px;
+    box-shadow: 0 4px 20px var(--red-ui-shadow);
+    overflow: hidden;
+}
+
+.red-ui-search-header {
+    display: flex;
+    align-items: center;
+    padding: 0;
+    border-bottom: 1px solid var(--red-ui-secondary-border-color);
+}
+
+.red-ui-search-input {
+    flex: 1;
+    border: none;
+    padding: 12px 15px;
+    font-size: 14px;
+    outline: none;
+}
+
+.red-ui-search-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    color: var(--red-ui-tertiary-text-color);
+    padding: 10px 15px;
+}
+
+.red-ui-search-close:hover {
+    color: var(--red-ui-primary-text-color);
+}
+
+.red-ui-search-results {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.red-ui-search-empty {
+    padding: 20px;
+    text-align: center;
+    color: var(--red-ui-secondary-text-color);
+    font-size: 13px;
+}
+
+.red-ui-search-result {
+    display: flex;
+    align-items: center;
+    padding: 8px 15px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--red-ui-secondary-border-color);
+}
+
+.red-ui-search-result:hover {
+    background: var(--red-ui-secondary-background-hover);
+}
+
+.red-ui-search-result.selected {
+    background: var(--red-ui-secondary-background-selected);
+}
+
+.red-ui-search-result-node {
+    width: 30px;
+    height: 24px;
+    border-radius: 3px;
+    border: 1px solid #999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    font-size: 12px;
+}
+
+.red-ui-search-result-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.red-ui-search-result-label {
+    font-size: 13px;
+    color: var(--red-ui-primary-text-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.red-ui-search-result-type {
+    font-size: 11px;
+    color: var(--red-ui-secondary-text-color);
+}
+
+.red-ui-search-result-flow {
+    margin-left: 8px;
+    color: var(--red-ui-tertiary-text-color);
+}
+
+.red-ui-search-highlight {
+    background: #ff0;
+    font-weight: 500;
+}
+
+.red-ui-search-more {
+    padding: 10px 15px;
+    text-align: center;
+    color: var(--red-ui-tertiary-text-color);
+    font-size: 12px;
+}
+
+/* ============================================================
+   Menu Styles (from menu.scss)
+   ============================================================ */
+.red-ui-menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9997;
+}
+
+.red-ui-menu-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.red-ui-menu-container {
+    position: absolute;
+    top: var(--red-ui-header-height);
+    right: 0;
+    background: var(--red-ui-secondary-background);
+    border: 1px solid var(--red-ui-secondary-border-color);
+    box-shadow: 0 2px 10px var(--red-ui-shadow);
+    min-width: 250px;
+}
+
+.red-ui-menu-group {
+    border-bottom: 1px solid var(--red-ui-secondary-border-color);
+    padding: 5px 0;
+}
+
+.red-ui-menu-group:last-child {
+    border-bottom: none;
+}
+
+.red-ui-menu-label {
+    padding: 5px 15px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--red-ui-secondary-text-color);
+    text-transform: uppercase;
+}
+
+.red-ui-menu-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 15px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--red-ui-primary-text-color);
+}
+
+.red-ui-menu-item:hover {
+    background: var(--red-ui-secondary-background-hover);
+}
+
+.red-ui-menu-item.red-ui-menu-item-danger:hover {
+    background: rgba(214, 97, 95, 0.1);
+    color: var(--red-ui-text-color-error);
+}
+
+.red-ui-menu-check {
+    width: 20px;
+    text-align: center;
+    color: var(--red-ui-header-menu-color);
+}
+
+.red-ui-menu-icon {
+    width: 24px;
+    text-align: center;
+}
+
+.red-ui-menu-shortcut {
+    margin-left: auto;
+    color: var(--red-ui-tertiary-text-color);
+    font-size: 11px;
+}
+
+.red-ui-menu-separator {
+    height: 1px;
+    background: var(--red-ui-secondary-border-color);
+    margin: 5px 0;
+}
+
+/* ============================================================
+   Keyboard Shortcuts Dialog Styles
+   ============================================================ */
+.red-ui-keyboard-shortcuts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.red-ui-keyboard-section {
+    flex: 1;
+    min-width: 200px;
+}
+
+.red-ui-keyboard-section h4 {
+    margin: 0 0 10px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--red-ui-primary-text-color);
+    border-bottom: 1px solid var(--red-ui-secondary-border-color);
+    padding-bottom: 5px;
+}
+
+.red-ui-keyboard-shortcut {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    font-size: 13px;
+}
+
+.red-ui-keyboard-keys {
+    display: flex;
+    gap: 4px;
+}
+
+.red-ui-keyboard-keys kbd {
+    background: var(--red-ui-tertiary-background);
+    border: 1px solid var(--red-ui-secondary-border-color);
+    border-radius: 3px;
+    padding: 2px 6px;
+    font-family: var(--red-ui-monospace-font);
+    font-size: 11px;
+    color: var(--red-ui-primary-text-color);
+}
+
+.red-ui-keyboard-action {
+    color: var(--red-ui-secondary-text-color);
+}
+
+/* ============================================================
+   SOURCE: packages/node_modules/@node-red/editor-client/src/sass/typedInput.scss
+   TypedInput Widget - Pixel-perfect translation
+   ============================================================ */
+.red-ui-typedInput-container {
+    display: flex;
+    position: relative;
+}
+
+.red-ui-typedInput-type-select {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--red-ui-form-button-background);
+    border: 1px solid var(--red-ui-form-input-border-color);
+    border-right: none;
+    padding: 6px 10px;
+    cursor: pointer;
+    min-width: 50px;
+    font-size: 12px;
+    color: var(--red-ui-primary-text-color);
+}
+
+.red-ui-typedInput-type-select:hover {
+    background: var(--red-ui-secondary-background-hover);
+}
+
+.red-ui-typedInput-type-label {
+    font-family: var(--red-ui-monospace-font);
+    font-weight: 500;
+}
+
+.red-ui-typedInput-options {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: var(--red-ui-secondary-background);
+    border: 1px solid var(--red-ui-form-input-border-color);
+    box-shadow: 0 2px 10px var(--red-ui-shadow);
+    z-index: 100;
+    min-width: 150px;
+}
+
+.red-ui-typedInput-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.red-ui-typedInput-option:hover {
+    background: var(--red-ui-secondary-background-hover);
+}
+
+.red-ui-typedInput-option.selected {
+    background: var(--red-ui-secondary-background-selected);
+}
+
+.red-ui-typedInput-option-icon {
+    width: 20px;
+    text-align: center;
+    font-family: var(--red-ui-monospace-font);
+    color: var(--red-ui-secondary-text-color);
+}
+
+.red-ui-typedInput-input {
+    flex: 1;
+    border: 1px solid var(--red-ui-form-input-border-color);
+    padding: 6px 8px;
+    font-size: 14px;
+    font-family: var(--red-ui-primary-font);
+    color: var(--red-ui-form-text-color);
+    background: var(--red-ui-form-input-background);
+    min-width: 0;
+}
+
+.red-ui-typedInput-input:focus {
+    outline: none;
+    border-color: var(--red-ui-form-input-focus-color);
+    box-shadow: 0 0 0 1px var(--red-ui-form-input-focus-color);
+}
+
+.red-ui-typedInput-value-label {
+    flex: 1;
+    border: 1px solid var(--red-ui-form-input-border-color);
+    padding: 6px 8px;
+    font-size: 14px;
+    background: var(--red-ui-form-input-background-disabled);
+    color: var(--red-ui-form-text-color-disabled);
+    display: flex;
+    align-items: center;
+}
+
+/* ============================================================
+   SOURCE: packages/node_modules/@node-red/editor-client/src/sass/groups.scss
+   Groups - Pixel-perfect translation
+   ============================================================ */
+.red-ui-flow-group {
+    cursor: move;
+}
+
+.red-ui-flow-group rect.red-ui-flow-group-outline {
+    fill: none;
+    stroke: var(--red-ui-group-border-color, #999);
+    stroke-width: 2;
+    rx: 5;
+    ry: 5;
+}
+
+.red-ui-flow-group rect.red-ui-flow-group-body {
+    fill: var(--red-ui-group-fill-color, transparent);
+    fill-opacity: var(--red-ui-group-fill-opacity, 0.1);
+}
+
+.red-ui-flow-group.red-ui-flow-group-selected rect.red-ui-flow-group-outline {
+    stroke: var(--red-ui-node-selected-color);
+    stroke-width: 2;
+}
+
+.red-ui-flow-group-label {
+    fill: var(--red-ui-group-label-color, #a4a4a4);
+    font-size: 14px;
+}
+
+.red-ui-flow-group-handle {
+    fill: var(--red-ui-node-selected-color);
+    stroke: var(--red-ui-secondary-background);
+    stroke-width: 2;
+    cursor: nwse-resize;
+}
+
+.red-ui-flow-group-handle.red-ui-flow-group-handle-n,
+.red-ui-flow-group-handle.red-ui-flow-group-handle-s {
+    cursor: ns-resize;
+}
+
+.red-ui-flow-group-handle.red-ui-flow-group-handle-e,
+.red-ui-flow-group-handle.red-ui-flow-group-handle-w {
+    cursor: ew-resize;
+}
+
+/* ============================================================
+   SOURCE: packages/node_modules/@node-red/editor-client/src/sass/subflow.scss
+   Subflows - Pixel-perfect translation
+   ============================================================ */
+.red-ui-palette-node-subflow {
+    border-style: dashed;
+}
+
+.red-ui-flow-subflow-port {
+    cursor: move;
+}
+
+.red-ui-flow-subflow-port rect {
+    fill: var(--red-ui-secondary-background);
+    stroke: var(--red-ui-node-border);
+    stroke-width: 1;
+    rx: 5;
+    ry: 5;
+}
+
+.red-ui-flow-subflow-port.red-ui-flow-subflow-port-input rect {
+    fill: var(--red-ui-subflow-input-color, #a6bbcf);
+}
+
+.red-ui-flow-subflow-port.red-ui-flow-subflow-port-output rect {
+    fill: var(--red-ui-subflow-output-color, #a6bbcf);
+}
+
+.red-ui-flow-subflow-port.selected rect {
+    stroke: var(--red-ui-node-selected-color);
+    stroke-width: 2;
+}
+
+.red-ui-flow-subflow-port text {
+    fill: var(--red-ui-primary-text-color);
+    font-size: 14px;
+}
+
+.red-ui-flow-node.red-ui-flow-subflow-instance {
+    stroke-dasharray: none;
+}
+
+/* Subflow tab indicator */
+.red-ui-workspace-tabs li.red-ui-workspace-tab-subflow {
+    font-style: italic;
+}
+
+.red-ui-workspace-tabs li.red-ui-workspace-tab-subflow::before {
+    content: "⟳ ";
+}
+
+/* ============================================================
+   Animations (Section 11)
+   ============================================================ */
+/* Tray slide animation - 200ms ease */
+.red-ui-tray {
+    transition: right 0.2s ease;
+}
+
+/* Panel collapse animation - 200ms ease */
+.red-ui-palette,
+.red-ui-sidebar {
+    transition: width 0.2s ease;
+}
+
+/* Node status pulse animation */
+@keyframes statusPulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.red-ui-flow-node-status-group circle.pulsing {
+    animation: statusPulse 1s ease-in-out infinite;
+}
+
+/* Deploy progress animation */
+@keyframes deployProgress {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.red-ui-deploy-button.deploying i {
+    animation: deployProgress 1s linear infinite;
+}
+
+/* Tooltip fade */
+.red-ui-popover {
+    animation: fadeIn 0.15s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* ============================================================
+   Cursor States (Section 15)
+   ============================================================ */
+.red-ui-view { cursor: crosshair; }
+.red-ui-flow-node { cursor: move; }
+.red-ui-flow-port { cursor: crosshair; }
+.red-ui-flow-link-background { cursor: pointer; }
+.red-ui-palette-node { cursor: grab; }
+.red-ui-palette-node:active { cursor: grabbing; }
+.red-ui-sidebar-separator { cursor: col-resize; }
+.red-ui-palette-grip { cursor: col-resize; }
+input, textarea, select { cursor: text; }
+button, .red-ui-button { cursor: pointer; }
+.disabled, [disabled] { cursor: not-allowed; }
+
+/* ============================================================
+   Additional Node States (Section 2)
+   ============================================================ */
+/* Unknown node type */
+.red-ui-flow-node.red-ui-flow-node-unknown rect {
+    fill: #f99;
+    stroke: #c00;
+    stroke-dasharray: 5,3;
+}
+
+/* Disabled node */
+.red-ui-flow-node.red-ui-flow-node-disabled {
+    opacity: 0.5;
+}
+
+.red-ui-flow-node.red-ui-flow-node-disabled rect {
+    stroke-dasharray: 8,4;
+}
+
+/* Node with errors */
+.red-ui-flow-node.red-ui-flow-node-error rect {
+    stroke: var(--red-ui-text-color-error);
+    stroke-width: 2;
+}
+
+/* Comment node */
+.red-ui-flow-node.red-ui-flow-node-comment rect {
+    fill: transparent;
+    stroke: var(--red-ui-tertiary-text-color);
+    stroke-dasharray: 5,3;
+}
+
+/* Junction node */
+.red-ui-flow-node.red-ui-flow-node-junction rect {
+    rx: 15;
+    ry: 15;
+}

@@ -1,0 +1,460 @@
+@* ============================================================
+   SOURCE: packages/node_modules/@node-red/editor-client/src/js/red.js
+   and packages/node_modules/@node-red/editor-client/src/js/ui/view.js
+   ============================================================
+   Copyright JS Foundation and other contributors, http://js.foundation
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+   ============================================================ *@
+
+@using NodeRed.Editor.Services
+@using NodeRed.Editor.Components.Editor.Dialogs
+@inject EditorState State
+@inject IJSRuntime JS
+@implements IDisposable
+
+<div id="red-ui-editor" class="red-ui-editor" @onkeydown="OnKeyDown" tabindex="0">
+    <div id="red-ui-header">
+        <span class="red-ui-header-logo">
+            <span>Node-RED.NET</span>
+        </span>
+        <ul class="red-ui-header-toolbar">
+            <li>
+                <button class="red-ui-deploy-button" @onclick="DeployAsync">
+                    <span>Deploy</span>
+                </button>
+            </li>
+            <li>
+                <a id="red-ui-header-button-sidemenu" class="button" @onclick="ToggleMenu">
+                    <i class="fa fa-bars"></i>
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <div id="red-ui-main-container" class="@(State.SidebarOpen ? "" : "red-ui-sidebar-closed")">
+        @* Palette - left side *@
+        <div id="red-ui-palette" class="@(State.PaletteOpen ? "" : "hide")">
+            <Palette />
+        </div>
+
+        @* Workspace - center canvas *@
+        <div id="red-ui-workspace">
+            <Workspace />
+        </div>
+
+        @* Sidebar - right side *@
+        <div id="red-ui-sidebar" class="@(State.SidebarOpen ? "" : "hide")">
+            <Sidebar />
+        </div>
+
+        @* Editor stack for trays *@
+        <div id="red-ui-editor-stack" tabindex="-1">
+            @if (State.CurrentTray is not null)
+            {
+                <Tray TrayConfig="State.CurrentTray" />
+            }
+        </div>
+    </div>
+
+    @* Loading progress indicator *@
+    @if (State.IsLoading)
+    {
+        <div id="red-ui-loading-progress">
+            <div>
+                <div class="red-ui-loading-bar-label">@State.LoadingMessage</div>
+                <div class="red-ui-loading-bar">
+                    <span style="width: @(State.LoadingProgress)%"></span>
+                </div>
+            </div>
+        </div>
+    }
+
+    @* Full screen shade for dialogs *@
+    <div id="red-ui-full-shade" class="@(State.ShowShade ? "" : "hide")"></div>
+
+    @* Context menu *@
+    @if (State.ContextMenuOpen)
+    {
+        <div class="red-ui-context-menu" style="left: @(State.ContextMenuPosition.X)px; top: @(State.ContextMenuPosition.Y)px;">
+            @foreach (var item in State.ContextMenuItems)
+            {
+                @if (item.IsSeparator)
+                {
+                    <div class="red-ui-context-menu-separator"></div>
+                }
+                else
+                {
+                    <div class="red-ui-context-menu-item @(item.Disabled ? "disabled" : "")" 
+                         @onclick="() => OnContextMenuItemClick(item)">
+                        @if (!string.IsNullOrEmpty(item.Icon))
+                        {
+                            <i class="fa fa-@item.Icon"></i>
+                        }
+                        <span>@item.Label</span>
+                        @if (!string.IsNullOrEmpty(item.Shortcut))
+                        {
+                            <span class="red-ui-context-menu-shortcut">@item.Shortcut</span>
+                        }
+                    </div>
+                }
+            }
+        </div>
+    }
+
+    @* Main Menu *@
+    <Menu IsOpen="@_menuOpen" 
+          OnClose="CloseMenu"
+          OnOpenImport="OpenImport"
+          OnOpenExport="OpenExport"
+          OnOpenSearch="OpenSearch"
+          OnOpenConfigNodes="OpenConfigNodes"
+          OnShowKeyboardShortcuts="ShowKeyboardShortcuts" />
+
+    @* Dialogs *@
+    <ImportDialog IsOpen="@_importOpen" 
+                  OnClose="CloseImport"
+                  OnImport="HandleImport" />
+    
+    <ExportDialog IsOpen="@_exportOpen" 
+                  OnClose="CloseExport" />
+    
+    <SearchDialog IsOpen="@_searchOpen"
+                  OnClose="CloseSearch"
+                  OnGoToNode="GoToNode" />
+    
+    <KeyboardShortcutsDialog IsOpen="@_shortcutsOpen"
+                             OnClose="CloseShortcuts" />
+</div>
+
+@code {
+    // Dialog state
+    private bool _menuOpen;
+    private bool _importOpen;
+    private bool _exportOpen;
+    private bool _searchOpen;
+    private bool _shortcutsOpen;
+
+    protected override void OnInitialized()
+    {
+        // Subscribe to state changes from other components
+        State.OnStateChanged += HandleStateChanged;
+    }
+
+    private void HandleStateChanged()
+    {
+        // Re-render when state changes (e.g., tray opened from Workspace)
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        // Unsubscribe to prevent memory leaks
+        State.OnStateChanged -= HandleStateChanged;
+    }
+
+    // ============================================================
+    // ORIGINAL CODE (red.js lines 931-956):
+    // ------------------------------------------------------------
+    // function init(options) { ... }
+    // ------------------------------------------------------------
+    // TRANSLATION:
+    // ------------------------------------------------------------
+    protected override async Task OnInitializedAsync()
+    {
+        State.IsLoading = true;
+        State.LoadingMessage = "Initializing...";
+        State.LoadingProgress = 0;
+
+        try
+        {
+            // Load settings
+            State.LoadingMessage = "Loading settings...";
+            State.LoadingProgress = 10;
+            await State.LoadSettingsAsync();
+
+            // Load nodes
+            State.LoadingMessage = "Loading nodes...";
+            State.LoadingProgress = 30;
+            await State.LoadNodesAsync();
+
+            // Load flows
+            State.LoadingMessage = "Loading flows...";
+            State.LoadingProgress = 70;
+            await State.LoadFlowsAsync();
+
+            State.LoadingMessage = "Complete";
+            State.LoadingProgress = 100;
+        }
+        finally
+        {
+            State.IsLoading = false;
+            StateHasChanged();
+        }
+    }
+    // ============================================================
+
+    private async Task DeployAsync()
+    {
+        State.IsDeploying = true;
+        StateHasChanged();
+
+        try
+        {
+            await State.DeployFlowsAsync();
+        }
+        finally
+        {
+            State.IsDeploying = false;
+            StateHasChanged();
+        }
+    }
+
+    private void ToggleMenu()
+    {
+        _menuOpen = !_menuOpen;
+        StateHasChanged();
+    }
+
+    private void CloseMenu()
+    {
+        _menuOpen = false;
+        StateHasChanged();
+    }
+
+    private void OnContextMenuItemClick(ContextMenuItem item)
+    {
+        if (item.Disabled) return;
+        item.Action?.Invoke();
+        State.ContextMenuOpen = false;
+        StateHasChanged();
+    }
+
+    // Keyboard shortcuts handler
+    private void OnKeyDown(KeyboardEventArgs e)
+    {
+        if (e.CtrlKey)
+        {
+            switch (e.Key.ToLowerInvariant())
+            {
+                case "f":
+                    OpenSearch();
+                    break;
+                case "i":
+                    OpenImport();
+                    break;
+                case "e":
+                    OpenExport();
+                    break;
+                case "d":
+                    _ = DeployAsync();
+                    break;
+                case "=":
+                    State.Scale = Math.Min(2.0, State.Scale + 0.1);
+                    StateHasChanged();
+                    break;
+                case "-":
+                    State.Scale = Math.Max(0.25, State.Scale - 0.1);
+                    StateHasChanged();
+                    break;
+                case "0":
+                    State.Scale = 1.0;
+                    StateHasChanged();
+                    break;
+                case "a":
+                    // Select all nodes in current flow
+                    foreach (var node in State.Nodes.Where(n => n.FlowId == State.ActiveFlowId))
+                    {
+                        node.Selected = true;
+                    }
+                    StateHasChanged();
+                    break;
+            }
+
+            if (e.ShiftKey && e.Key.ToLowerInvariant() == "p")
+            {
+                State.PaletteOpen = !State.PaletteOpen;
+                StateHasChanged();
+            }
+            if (e.Key == " ")
+            {
+                State.SidebarOpen = !State.SidebarOpen;
+                StateHasChanged();
+            }
+            if (e.Key == "?")
+            {
+                ShowKeyboardShortcuts();
+            }
+        }
+
+        if (e.Key == "Escape")
+        {
+            // Clear selection
+            foreach (var node in State.Nodes)
+            {
+                node.Selected = false;
+            }
+            State.ContextMenuOpen = false;
+            CloseAllDialogs();
+            StateHasChanged();
+        }
+
+        if (e.Key == "Delete" || e.Key == "Backspace")
+        {
+            // Delete selected nodes
+            var selectedNodes = State.SelectedNodes.ToList();
+            foreach (var node in selectedNodes)
+            {
+                State.Wires.RemoveAll(w => w.SourceId == node.Id || w.TargetId == node.Id);
+                State.Nodes.Remove(node);
+            }
+            if (selectedNodes.Any())
+            {
+                State.MarkDirty();
+                StateHasChanged();
+            }
+        }
+    }
+
+    private void OpenImport()
+    {
+        _importOpen = true;
+        State.ShowShade = true;
+        StateHasChanged();
+    }
+
+    private void CloseImport()
+    {
+        _importOpen = false;
+        State.ShowShade = false;
+        StateHasChanged();
+    }
+
+    private void OpenExport()
+    {
+        _exportOpen = true;
+        State.ShowShade = true;
+        StateHasChanged();
+    }
+
+    private void CloseExport()
+    {
+        _exportOpen = false;
+        State.ShowShade = false;
+        StateHasChanged();
+    }
+
+    private void OpenSearch()
+    {
+        _searchOpen = true;
+        StateHasChanged();
+    }
+
+    private void CloseSearch()
+    {
+        _searchOpen = false;
+        StateHasChanged();
+    }
+
+    private void OpenConfigNodes()
+    {
+        // Switch sidebar to config tab
+        // This would set sidebar active tab to "config"
+        State.SidebarOpen = true;
+        StateHasChanged();
+    }
+
+    private void ShowKeyboardShortcuts()
+    {
+        _shortcutsOpen = true;
+        State.ShowShade = true;
+        StateHasChanged();
+    }
+
+    private void CloseShortcuts()
+    {
+        _shortcutsOpen = false;
+        State.ShowShade = false;
+        StateHasChanged();
+    }
+
+    private void CloseAllDialogs()
+    {
+        _menuOpen = false;
+        _importOpen = false;
+        _exportOpen = false;
+        _searchOpen = false;
+        _shortcutsOpen = false;
+        State.ShowShade = false;
+    }
+
+    private void HandleImport(List<Dictionary<string, object>> flows)
+    {
+        // Import the flows into the editor state
+        // For now, we'll add to current flow
+        foreach (var flowData in flows)
+        {
+            if (flowData.TryGetValue("type", out var type) && type?.ToString() != "tab")
+            {
+                var node = new FlowNode
+                {
+                    Id = NodeRed.Util.Util.GenerateId(), // Generate new ID
+                    Type = type?.ToString() ?? "unknown",
+                    Name = flowData.GetValueOrDefault("name")?.ToString(),
+                    FlowId = State.ActiveFlowId,
+                    X = GetInt(flowData, "x", 100) + 50, // Offset to avoid overlap
+                    Y = GetInt(flowData, "y", 100) + 50,
+                    Width = 120,
+                    Height = 30
+                };
+                State.Nodes.Add(node);
+            }
+        }
+        State.MarkDirty();
+        StateHasChanged();
+    }
+
+    private void GoToNode(SearchResult result)
+    {
+        if (result.IsFlow)
+        {
+            State.ActiveFlowId = result.FlowId;
+        }
+        else
+        {
+            // Switch to the flow containing the node
+            State.ActiveFlowId = result.FlowId;
+            
+            // Select the node
+            foreach (var node in State.Nodes)
+            {
+                node.Selected = node.Id == result.NodeId;
+            }
+            
+            // TODO: Scroll to center the node
+        }
+        StateHasChanged();
+    }
+
+    private static int GetInt(Dictionary<string, object> data, string key, int defaultValue)
+    {
+        if (data.TryGetValue(key, out var value))
+        {
+            if (value is int i) return i;
+            if (value is long l) return (int)l;
+            if (value is double d) return (int)d;
+            if (int.TryParse(value?.ToString(), out var parsed)) return parsed;
+        }
+        return defaultValue;
+    }
+}

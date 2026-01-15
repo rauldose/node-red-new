@@ -1,0 +1,180 @@
+@* ============================================================
+   SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/editors/group.js
+   ============================================================
+   Group editor dialog for creating and editing node groups.
+   ============================================================ *@
+
+@using NodeRed.Editor.Services
+
+<div class="red-ui-dialog-overlay @(Open ? "open" : "")" @onclick="Close"></div>
+
+<div class="red-ui-dialog @(Open ? "open" : "")">
+    <div class="red-ui-dialog-header">
+        <span>Edit Group</span>
+        <button class="red-ui-dialog-close" @onclick="Close"><i class="fa fa-times"></i></button>
+    </div>
+
+    <div class="red-ui-dialog-body">
+        <form>
+            <div class="form-row">
+                <label for="group-name">Name</label>
+                <input type="text" id="group-name" @bind="Name" placeholder="Group name (optional)" />
+            </div>
+
+            <div class="form-row">
+                <label for="group-style">Style</label>
+                <select id="group-style" @bind="Style">
+                    <option value="">Default</option>
+                    <option value="outlined">Outlined</option>
+                    <option value="filled">Filled</option>
+                </select>
+            </div>
+
+            <div class="form-row">
+                <label for="group-fill">Fill Color</label>
+                <div class="color-picker-row">
+                    <input type="color" id="group-fill" @bind="Fill" />
+                    <input type="range" min="0" max="100" step="5" @bind="FillOpacityPercent" />
+                    <span>@FillOpacityPercent%</span>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <label for="group-stroke">Stroke Color</label>
+                <div class="color-picker-row">
+                    <input type="color" id="group-stroke" @bind="Stroke" />
+                    <input type="range" min="0" max="100" step="5" @bind="StrokeOpacityPercent" />
+                    <span>@StrokeOpacityPercent%</span>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <label for="group-label-position">Label Position</label>
+                <select id="group-label-position" @bind="LabelPosition">
+                    <option value="nw">Top Left</option>
+                    <option value="ne">Top Right</option>
+                    <option value="sw">Bottom Left</option>
+                    <option value="se">Bottom Right</option>
+                </select>
+            </div>
+
+            <div class="form-row">
+                <label>Nodes</label>
+                <div class="group-node-list">
+                    @if (Group != null && Group.Nodes.Count > 0)
+                    {
+                        <ul>
+                            @foreach (var nodeId in Group.Nodes)
+                            {
+                                <li>@GetNodeLabel(nodeId)</li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <span class="muted">No nodes in group</span>
+                    }
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="red-ui-dialog-footer">
+        @if (OnDelete != null && Group != null)
+        {
+            <button class="red-ui-button" @onclick="HandleDelete">Ungroup</button>
+        }
+        <button class="red-ui-button" @onclick="Close">Cancel</button>
+        <button class="red-ui-button red-ui-button-primary" @onclick="HandleSave">Done</button>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public bool Open { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    [Parameter]
+    public NodeGroup? Group { get; set; }
+
+    [Parameter]
+    public EditorState? EditorState { get; set; }
+
+    [Parameter]
+    public EventCallback<NodeGroup> OnSave { get; set; }
+
+    [Parameter]
+    public EventCallback<NodeGroup>? OnDelete { get; set; }
+
+    private string Name { get; set; } = "";
+    private string Style { get; set; } = "";
+    private string Fill { get; set; } = "#ffffff";
+    private int FillOpacityPercent { get; set; } = 10;
+    private string Stroke { get; set; } = "#999999";
+    private int StrokeOpacityPercent { get; set; } = 100;
+    private string LabelPosition { get; set; } = "nw";
+
+    protected override void OnParametersSet()
+    {
+        if (Group != null)
+        {
+            Name = Group.Name ?? "";
+            Style = Group.Style ?? "";
+            Fill = Group.Fill ?? "#ffffff";
+            FillOpacityPercent = (int)(Group.FillOpacity * 100);
+            Stroke = Group.Stroke ?? "#999999";
+            StrokeOpacityPercent = (int)(Group.StrokeOpacity * 100);
+            LabelPosition = Group.LabelPosition;
+        }
+        else
+        {
+            Name = "";
+            Style = "";
+            Fill = "#ffffff";
+            FillOpacityPercent = 10;
+            Stroke = "#999999";
+            StrokeOpacityPercent = 100;
+            LabelPosition = "nw";
+        }
+    }
+
+    private string GetNodeLabel(string nodeId)
+    {
+        if (EditorState == null) return nodeId;
+
+        var node = EditorState.Nodes.FirstOrDefault(n => n.Id == nodeId);
+        return node?.Name ?? node?.Label ?? node?.Type ?? nodeId;
+    }
+
+    private async Task Close()
+    {
+        await OpenChanged.InvokeAsync(false);
+    }
+
+    private async Task HandleSave()
+    {
+        if (Group == null) return;
+
+        Group.Name = string.IsNullOrWhiteSpace(Name) ? null : Name;
+        Group.Style = string.IsNullOrWhiteSpace(Style) ? null : Style;
+        Group.Fill = Fill;
+        Group.FillOpacity = FillOpacityPercent / 100.0;
+        Group.Stroke = Stroke;
+        Group.StrokeOpacity = StrokeOpacityPercent / 100.0;
+        Group.LabelPosition = LabelPosition;
+
+        await OnSave.InvokeAsync(Group);
+        await Close();
+    }
+
+    private async Task HandleDelete()
+    {
+        if (Group != null && OnDelete.HasValue)
+        {
+            await OnDelete.Value.InvokeAsync(Group);
+            await Close();
+        }
+    }
+}

@@ -1,0 +1,41 @@
+@* ============================================================
+   SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/sidebar.js
+   ============================================================
+   Sidebar component with info, debug, and config tabs.
+   ============================================================ *@
+
+@using NodeRed.Editor.Services
+@inject EditorState State
+
+<div class="red-ui-sidebar-container">
+    <ul class="red-ui-sidebar-tabs">
+        <li class="@(ActiveTab == "info" ? "active" : "")" @onclick='() => ActiveTab = "info"'>
+            <i class="fa fa-info"></i>
+        </li>
+        <li class="@(ActiveTab == "debug" ? "active" : "")" @onclick='() => ActiveTab = "debug"'>
+            <i class="fa fa-bug"></i>
+        </li>
+        <li class="@(ActiveTab == "config" ? "active" : "")" @onclick='() => ActiveTab = "config"'>
+            <i class="fa fa-cog"></i>
+        </li>
+    </ul>
+
+    <div class="red-ui-sidebar-content">
+        @switch (ActiveTab)
+        {
+            case "info":
+                <SidebarInfo />
+                break;
+            case "debug":
+                <SidebarDebug />
+                break;
+            case "config":
+                <SidebarConfig />
+                break;
+        }
+    </div>
+</div>
+
+@code {
+    private string ActiveTab { get; set; } = "info";
+}

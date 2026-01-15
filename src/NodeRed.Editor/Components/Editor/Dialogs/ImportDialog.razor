@@ -1,0 +1,139 @@
+@* ============================================================
+   SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/clipboard.js
+   LINES: 244-442 (Import dialog implementation)
+   ============================================================
+   Import dialog for importing flows from JSON.
+   ============================================================ *@
+
+@using NodeRed.Editor.Services
+@inject EditorState State
+
+<div class="red-ui-dialog @(IsOpen ? "open" : "")" style="display: @(IsOpen ? "block" : "none")">
+    <div class="red-ui-dialog-overlay" @onclick="Close"></div>
+    <div class="red-ui-dialog-container" style="width: 500px;">
+        <div class="red-ui-dialog-header">
+            <span class="red-ui-dialog-title">Import nodes</span>
+            <button class="red-ui-dialog-close" @onclick="Close">
+                <span class="icon-close"><i class="fa fa-times"></i></span>
+            </button>
+        </div>
+        <div class="red-ui-dialog-content">
+            <div class="red-ui-import-content">
+                <div class="red-ui-import-text-row">
+                    <label>Paste your flow JSON below or select a local file to import:</label>
+                </div>
+                <div class="red-ui-import-text-row">
+                    <textarea 
+                        @bind="ImportText" 
+                        @bind:event="oninput"
+                        class="red-ui-import-textarea"
+                        placeholder='[{"id":"...","type":"..."}]'
+                        spellcheck="false"
+                        rows="12">
+                    </textarea>
+                </div>
+                <div class="red-ui-import-file-row">
+                    <button class="red-ui-button" @onclick="SelectFile">
+                        <span class="icon-file">📁</span> select a file to import
+                    </button>
+                    <input type="file" 
+                           @ref="_fileInput" 
+                           accept=".json"
+                           style="display: none;"
+                           @onchange="OnFileSelected" />
+                </div>
+                <div class="red-ui-import-options">
+                    <label>Import to:</label>
+                    <div class="red-ui-import-option">
+                        <input type="radio" id="import-current" name="import-to" value="current" 
+                               checked="@(ImportTo == "current")"
+                               @onchange="@(() => ImportTo = "current")" />
+                        <label for="import-current">current flow</label>
+                    </div>
+                    <div class="red-ui-import-option">
+                        <input type="radio" id="import-new" name="import-to" value="new"
+                               checked="@(ImportTo == "new")"
+                               @onchange="@(() => ImportTo = "new")" />
+                        <label for="import-new">new flow</label>
+                    </div>
+                </div>
+                @if (!string.IsNullOrEmpty(ErrorMessage))
+                {
+                    <div class="red-ui-import-error">
+                        <span class="icon-error"><i class="fa fa-exclamation-triangle"></i></span> @ErrorMessage
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="red-ui-dialog-footer">
+            <button class="red-ui-button" @onclick="Close">Cancel</button>
+            <button class="red-ui-button red-ui-button-primary" 
+                    @onclick="DoImport"
+                    disabled="@string.IsNullOrWhiteSpace(ImportText)">
+                Import
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public bool IsOpen { get; set; }
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    [Parameter]
+    public EventCallback<List<Dictionary<string, object>>> OnImport { get; set; }
+
+    private string ImportText { get; set; } = "";
+    private string ImportTo { get; set; } = "current";
+    private string ErrorMessage { get; set; } = "";
+    private ElementReference _fileInput;
+
+    private async Task Close()
+    {
+        ImportText = "";
+        ErrorMessage = "";
+        await OnClose.InvokeAsync();
+    }
+
+    private void SelectFile()
+    {
+        // Trigger file input click via JS interop if needed
+    }
+
+    private async Task OnFileSelected(ChangeEventArgs e)
+    {
+        // File reading would require JS interop
+        await Task.CompletedTask;
+    }
+
+    private async Task DoImport()
+    {
+        ErrorMessage = "";
+
+        try
+        {
+            // Parse JSON
+            var flows = System.Text.Json.JsonSerializer.Deserialize<List<Dictionary<string, object>>>(ImportText);
+            
+            if (flows is null || flows.Count == 0)
+            {
+                ErrorMessage = "Invalid flow: no nodes found";
+                return;
+            }
+
+            await OnImport.InvokeAsync(flows);
+            await Close();
+        }
+        catch (System.Text.Json.JsonException ex)
+        {
+            ErrorMessage = $"Invalid JSON: {ex.Message}";
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Import failed: {ex.Message}";
+        }
+    }
+}

@@ -1,0 +1,167 @@
+@* ============================================================
+   SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/common/typedInput.js
+   ============================================================
+   TypedInput widget - multi-type input selector matching Node-RED exactly.
+   ============================================================ *@
+
+<div class="red-ui-typedInput-container">
+    <button class="red-ui-typedInput-type-select" @onclick="ToggleTypeMenu" @onclick:stopPropagation>
+        <span class="red-ui-typedInput-type-label">@GetTypeLabel()</span>
+        <i class="fa fa-caret-down"></i>
+    </button>
+    
+    @if (ShowTypeMenu)
+    {
+        <div class="red-ui-typedInput-options" @onclick:stopPropagation>
+            @foreach (var type in AllowedTypes)
+            {
+                <div class="red-ui-typedInput-option @(type == SelectedType ? "selected" : "")" 
+                     @onclick="() => SelectType(type)">
+                    <span class="red-ui-typedInput-option-icon">@GetTypeIcon(type)</span>
+                    <span>@GetTypeName(type)</span>
+                </div>
+            }
+        </div>
+    }
+    
+    @if (SelectedType == "bool")
+    {
+        <select class="red-ui-typedInput-input" @bind="Value">
+            <option value="true">true</option>
+            <option value="false">false</option>
+        </select>
+    }
+    else if (SelectedType == "json" || SelectedType == "bin" || SelectedType == "env" || SelectedType == "flow" || SelectedType == "global")
+    {
+        <input type="text" class="red-ui-typedInput-input" 
+               placeholder="@GetPlaceholder()" 
+               @bind="Value" 
+               @bind:event="oninput" />
+    }
+    else if (SelectedType == "num")
+    {
+        <input type="number" class="red-ui-typedInput-input" 
+               @bind="Value" 
+               @bind:event="oninput" />
+    }
+    else if (SelectedType == "date")
+    {
+        <span class="red-ui-typedInput-value-label">timestamp</span>
+    }
+    else
+    {
+        <input type="text" class="red-ui-typedInput-input" 
+               placeholder="@GetPlaceholder()" 
+               @bind="Value" 
+               @bind:event="oninput" />
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string? Value { get; set; }
+
+    [Parameter]
+    public EventCallback<string?> ValueChanged { get; set; }
+
+    [Parameter]
+    public string SelectedType { get; set; } = "str";
+
+    [Parameter]
+    public EventCallback<string> SelectedTypeChanged { get; set; }
+
+    [Parameter]
+    public List<string> AllowedTypes { get; set; } = new() { "msg", "flow", "global", "str", "num", "bool", "json", "bin", "date", "env" };
+
+    private bool ShowTypeMenu { get; set; }
+
+    private void ToggleTypeMenu()
+    {
+        ShowTypeMenu = !ShowTypeMenu;
+    }
+
+    private async Task SelectType(string type)
+    {
+        SelectedType = type;
+        ShowTypeMenu = false;
+        await SelectedTypeChanged.InvokeAsync(type);
+        
+        // Clear value for date type
+        if (type == "date")
+        {
+            Value = "";
+            await ValueChanged.InvokeAsync(Value);
+        }
+    }
+
+    private string GetTypeLabel()
+    {
+        return SelectedType switch
+        {
+            "msg" => "msg.",
+            "flow" => "flow.",
+            "global" => "global.",
+            "str" => "az",
+            "num" => "123",
+            "bool" => "bool",
+            "json" => "{}",
+            "bin" => "bin",
+            "date" => "date",
+            "env" => "env",
+            _ => SelectedType
+        };
+    }
+
+    private string GetTypeIcon(string type)
+    {
+        // Using FontAwesome unicode or simple text labels
+        return type switch
+        {
+            "msg" => "\uf061",   // fa-arrow-right
+            "flow" => "\uf021",  // fa-refresh
+            "global" => "\uf0ac", // fa-globe
+            "str" => "az",
+            "num" => "#",
+            "bool" => "\uf10c",  // fa-circle-o
+            "json" => "{}",
+            "bin" => "\uf1c0",   // fa-database
+            "date" => "\uf017",  // fa-clock-o
+            "env" => "$",
+            _ => ""
+        };
+    }
+
+    private string GetTypeName(string type)
+    {
+        return type switch
+        {
+            "msg" => "msg.",
+            "flow" => "flow.",
+            "global" => "global.",
+            "str" => "string",
+            "num" => "number",
+            "bool" => "boolean",
+            "json" => "JSON",
+            "bin" => "buffer",
+            "date" => "timestamp",
+            "env" => "env variable",
+            _ => type
+        };
+    }
+
+    private string GetPlaceholder()
+    {
+        return SelectedType switch
+        {
+            "msg" => "payload",
+            "flow" => "context key",
+            "global" => "context key",
+            "str" => "",
+            "num" => "0",
+            "json" => "{}",
+            "bin" => "[0,1,2...]",
+            "env" => "variable name",
+            _ => ""
+        };
+    }
+}

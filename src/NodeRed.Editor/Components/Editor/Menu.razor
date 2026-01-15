@@ -1,0 +1,227 @@
+@* ============================================================
+   SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/menu.js
+   ============================================================
+   Main menu component - dropdown menu from hamburger button.
+   ============================================================ *@
+
+@using NodeRed.Editor.Services
+@inject EditorState State
+
+<div class="red-ui-menu @(IsOpen ? "open" : "")" style="display: @(IsOpen ? "block" : "none")">
+    <div class="red-ui-menu-overlay" @onclick="Close"></div>
+    <div class="red-ui-menu-container">
+        @* View submenu *@
+        <div class="red-ui-menu-group">
+            <div class="red-ui-menu-label">View</div>
+            <div class="red-ui-menu-item" @onclick="TogglePalette">
+                <span class="red-ui-menu-check">@(State.PaletteOpen ? "" : "")<i class="fa @(State.PaletteOpen ? "fa-check" : "")"></i></span>
+                <span>Show palette</span>
+                <span class="red-ui-menu-shortcut">Ctrl+Shift+P</span>
+            </div>
+            <div class="red-ui-menu-item" @onclick="ToggleSidebar">
+                <span class="red-ui-menu-check"><i class="fa @(State.SidebarOpen ? "fa-check" : "")"></i></span>
+                <span>Show sidebar</span>
+                <span class="red-ui-menu-shortcut">Ctrl+Space</span>
+            </div>
+            <div class="red-ui-menu-separator"></div>
+            <div class="red-ui-menu-item" @onclick="ZoomIn">
+                <span class="red-ui-menu-icon"><i class="fa fa-search-plus"></i></span>
+                <span>Zoom in</span>
+                <span class="red-ui-menu-shortcut">Ctrl+=</span>
+            </div>
+            <div class="red-ui-menu-item" @onclick="ZoomOut">
+                <span class="red-ui-menu-icon"><i class="fa fa-search-minus"></i></span>
+                <span>Zoom out</span>
+                <span class="red-ui-menu-shortcut">Ctrl+-</span>
+            </div>
+            <div class="red-ui-menu-item" @onclick="ZoomReset">
+                <span class="red-ui-menu-icon"><i class="fa fa-search"></i></span>
+                <span>Reset zoom</span>
+                <span class="red-ui-menu-shortcut">Ctrl+0</span>
+            </div>
+        </div>
+
+        @* Import/Export submenu *@
+        <div class="red-ui-menu-group">
+            <div class="red-ui-menu-label">Import / Export</div>
+            <div class="red-ui-menu-item" @onclick="OpenImport">
+                <span class="red-ui-menu-icon"><i class="fa fa-download"></i></span>
+                <span>Import</span>
+                <span class="red-ui-menu-shortcut">Ctrl+I</span>
+            </div>
+            <div class="red-ui-menu-item" @onclick="OpenExport">
+                <span class="red-ui-menu-icon"><i class="fa fa-upload"></i></span>
+                <span>Export</span>
+                <span class="red-ui-menu-shortcut">Ctrl+E</span>
+            </div>
+        </div>
+
+        @* Search *@
+        <div class="red-ui-menu-group">
+            <div class="red-ui-menu-label">Search</div>
+            <div class="red-ui-menu-item" @onclick="OpenSearch">
+                <span class="red-ui-menu-icon"><i class="fa fa-search"></i></span>
+                <span>Search flows</span>
+                <span class="red-ui-menu-shortcut">Ctrl+F</span>
+            </div>
+        </div>
+
+        @* Configuration *@
+        <div class="red-ui-menu-group">
+            <div class="red-ui-menu-label">Configuration nodes</div>
+            <div class="red-ui-menu-item" @onclick="OpenConfigNodes">
+                <span class="red-ui-menu-icon"><i class="fa fa-cog"></i></span>
+                <span>Configuration nodes</span>
+            </div>
+        </div>
+
+        @* Flows *@
+        <div class="red-ui-menu-group">
+            <div class="red-ui-menu-label">Flows</div>
+            <div class="red-ui-menu-item" @onclick="AddFlow">
+                <span class="red-ui-menu-icon"><i class="fa fa-plus"></i></span>
+                <span>Add flow</span>
+            </div>
+            <div class="red-ui-menu-item" @onclick="RenameFlow">
+                <span class="red-ui-menu-icon"><i class="fa fa-pencil"></i></span>
+                <span>Rename flow</span>
+            </div>
+            <div class="red-ui-menu-item red-ui-menu-item-danger" @onclick="DeleteFlow">
+                <span class="red-ui-menu-icon"><i class="fa fa-trash"></i></span>
+                <span>Delete flow</span>
+            </div>
+        </div>
+
+        @* Keyboard shortcuts *@
+        <div class="red-ui-menu-group">
+            <div class="red-ui-menu-item" @onclick="ShowKeyboardShortcuts">
+                <span class="red-ui-menu-icon"><i class="fa fa-keyboard-o"></i></span>
+                <span>Keyboard shortcuts</span>
+                <span class="red-ui-menu-shortcut">Ctrl+?</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public bool IsOpen { get; set; }
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    [Parameter]
+    public EventCallback OnOpenImport { get; set; }
+
+    [Parameter]
+    public EventCallback OnOpenExport { get; set; }
+
+    [Parameter]
+    public EventCallback OnOpenSearch { get; set; }
+
+    [Parameter]
+    public EventCallback OnOpenConfigNodes { get; set; }
+
+    [Parameter]
+    public EventCallback OnShowKeyboardShortcuts { get; set; }
+
+    private async Task Close()
+    {
+        await OnClose.InvokeAsync();
+    }
+
+    private async Task TogglePalette()
+    {
+        State.PaletteOpen = !State.PaletteOpen;
+        await Close();
+    }
+
+    private async Task ToggleSidebar()
+    {
+        State.SidebarOpen = !State.SidebarOpen;
+        await Close();
+    }
+
+    private async Task ZoomIn()
+    {
+        State.Scale = Math.Min(2.0, State.Scale + 0.1);
+        await Close();
+    }
+
+    private async Task ZoomOut()
+    {
+        State.Scale = Math.Max(0.25, State.Scale - 0.1);
+        await Close();
+    }
+
+    private async Task ZoomReset()
+    {
+        State.Scale = 1.0;
+        await Close();
+    }
+
+    private async Task OpenImport()
+    {
+        await Close();
+        await OnOpenImport.InvokeAsync();
+    }
+
+    private async Task OpenExport()
+    {
+        await Close();
+        await OnOpenExport.InvokeAsync();
+    }
+
+    private async Task OpenSearch()
+    {
+        await Close();
+        await OnOpenSearch.InvokeAsync();
+    }
+
+    private async Task OpenConfigNodes()
+    {
+        await Close();
+        await OnOpenConfigNodes.InvokeAsync();
+    }
+
+    private async Task AddFlow()
+    {
+        var newFlow = new Flow
+        {
+            Id = NodeRed.Util.Util.GenerateId(),
+            Label = $"Flow {State.Flows.Count + 1}",
+            Type = "tab"
+        };
+        State.Flows.Add(newFlow);
+        State.ActiveFlowId = newFlow.Id;
+        State.MarkDirty();
+        await Close();
+    }
+
+    private async Task RenameFlow()
+    {
+        // Would open rename dialog
+        await Close();
+    }
+
+    private async Task DeleteFlow()
+    {
+        var currentFlow = State.Flows.FirstOrDefault(f => f.Id == State.ActiveFlowId);
+        if (currentFlow is not null && State.Flows.Count > 1)
+        {
+            // Remove all nodes in flow
+            State.Nodes.RemoveAll(n => n.FlowId == currentFlow.Id);
+            State.Wires.RemoveAll(w => w.FlowId == currentFlow.Id);
+            State.Flows.Remove(currentFlow);
+            State.ActiveFlowId = State.Flows[0].Id;
+            State.MarkDirty();
+        }
+        await Close();
+    }
+
+    private async Task ShowKeyboardShortcuts()
+    {
+        await Close();
+        await OnShowKeyboardShortcuts.InvokeAsync();
+    }
+}

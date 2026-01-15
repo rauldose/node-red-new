@@ -1,0 +1,1145 @@
+@* ============================================================
+   SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/view.js
+   ============================================================
+   Main workspace/canvas component for flow editing.
+   ============================================================ *@
+
+@using NodeRed.Editor.Services
+@using Microsoft.JSInterop
+@inject EditorState State
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<div class="red-ui-workspace-container">
+    @* Tab bar for flows *@
+    <div class="red-ui-workspace-tabs">
+        <ul class="red-ui-tabs">
+            @foreach (var flow in State.Flows)
+            {
+                <li class="red-ui-tab @(flow.Id == State.ActiveFlowId ? "active" : "")"
+                    @onclick="() => SelectFlow(flow.Id)"
+                    @ondblclick="() => EditFlow(flow)">
+                    <span class="red-ui-tab-label">@flow.Label</span>
+                    @if (flow.Disabled)
+                    {
+                        <i class="fa fa-ban red-ui-tab-icon-disabled"></i>
+                    }
+                </li>
+            }
+            <li class="red-ui-tab-button" @onclick="AddFlow">
+                <i class="fa fa-plus"></i>
+            </li>
+        </ul>
+    </div>
+
+    @* Canvas area *@
+    <div @ref="_canvasRef" 
+         class="red-ui-workspace-chart" 
+         tabindex="0">
+        
+        @* ============================================================
+           SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/view.js
+           LINES: 336-348
+           ============================================================
+           outer = d3.select("#red-ui-workspace-chart")
+               .append("svg:svg")
+               .attr("width", space_width)      // 8000
+               .attr("height", space_height)   // 8000
+               .attr("pointer-events", "all")
+               .style("cursor","crosshair")
+           ============================================================ *@
+        <svg class="red-ui-workspace-chart-svg" 
+             width="@State.CanvasWidth" 
+             height="@State.CanvasHeight"
+             pointer-events="all"
+             style="cursor: crosshair; touch-action: none;">
+            
+            @* ============================================================
+               Grid Pattern (optimized for performance)
+               SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/view.js
+               LINES: 989-1016 (updateGrid function)
+               ============================================================
+               Using SVG pattern for grid instead of individual lines
+               for better performance with large canvas (8000x8000)
+               ============================================================ *@
+            <defs>
+                <pattern id="red-ui-grid-pattern" 
+                         width="@State.GridSize" height="@State.GridSize" 
+                         patternUnits="userSpaceOnUse">
+                    <line class="red-ui-workspace-chart-grid-h" x1="0" y1="0" x2="@State.GridSize" y2="0" />
+                    <line class="red-ui-workspace-chart-grid-v" x1="0" y1="0" x2="0" y2="@State.GridSize" />
+                </pattern>
+            </defs>
+            
+            @* Background rect *@
+            <rect class="red-ui-workspace-chart-background" 
+                  width="@State.CanvasWidth" 
+                  height="@State.CanvasHeight" />
+            
+            @* Grid overlay using pattern (only when grid is visible) *@
+            @if (State.ShowGrid)
+            {
+                <rect class="red-ui-workspace-chart-grid-pattern"
+                      width="@State.CanvasWidth" 
+                      height="@State.CanvasHeight"
+                      fill="url(#red-ui-grid-pattern)" />
+            }
+            
+            @* ============================================================
+               SECTION 17: GROUPS
+               SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/group.js
+               ============================================================
+               Groups are rendered BEFORE nodes so they appear behind
+               ============================================================ *@
+            <g class="red-ui-workspace-chart-groups">
+                @foreach (var group in GetActiveFlowGroups().OrderBy(g => g.ZIndex))
+                {
+                    <g class="red-ui-flow-group @(group.Selected ? "red-ui-flow-group-selected" : "")"
+                       data-group-id="@group.Id"
+                       transform="translate(@group.X, @group.Y)"
+                       @onclick="(e) => SelectGroup(group, e)"
+                       @onclick:stopPropagation="true"
+                       @ondblclick="() => EditGroup(group)"
+                       @onmousedown="(e) => StartGroupDrag(group, e)"
+                       @oncontextmenu="(e) => ShowGroupContextMenu(group, e)"
+                       @oncontextmenu:preventDefault="true">
+                        
+                        @* Group body (fill) *@
+                        <rect class="red-ui-flow-group-body"
+                              width="@group.Width" height="@group.Height"
+                              rx="4" ry="4"
+                              style="fill: @(group.Fill ?? "transparent"); fill-opacity: @group.FillOpacity;" />
+                        
+                        @* Group outline (border) *@
+                        <rect class="red-ui-flow-group-outline"
+                              width="@group.Width" height="@group.Height"
+                              rx="4" ry="4"
+                              style="stroke: @(group.Stroke ?? "#999"); stroke-opacity: @group.StrokeOpacity;" />
+                        
+                        @* Group label *@
+                        @if (!string.IsNullOrEmpty(group.Name))
+                        {
+                            var labelPosition = group.GetLabelPosition();
+                            @((MarkupString)$"<text class=\"red-ui-flow-group-label\" x=\"{labelPosition.x}\" y=\"{labelPosition.y}\" text-anchor=\"{group.GetLabelAnchor()}\">{System.Web.HttpUtility.HtmlEncode(group.Name)}</text>")
+                        }
+                        
+                        @* Resize handles (only when selected) *@
+                        @if (group.Selected)
+                        {
+                            var handleNw = "nw";
+                            var handleNe = "ne";
+                            var handleSw = "sw";
+                            var handleSe = "se";
+                            var handleN = "n";
+                            var handleS = "s";
+                            var handleW = "w";
+                            var handleE = "e";
+                            @* Corner handles *@
+                            <rect class="red-ui-flow-group-handle red-ui-flow-group-handle-nw"
+                                  x="-4" y="-4" width="8" height="8"
+                                  @onmousedown="(e) => StartGroupResize(group, handleNw, e)"
+                                  @onmousedown:stopPropagation="true" />
+                            <rect class="red-ui-flow-group-handle red-ui-flow-group-handle-ne"
+                                  x="@(group.Width - 4)" y="-4" width="8" height="8"
+                                  @onmousedown="(e) => StartGroupResize(group, handleNe, e)"
+                                  @onmousedown:stopPropagation="true" />
+                            <rect class="red-ui-flow-group-handle red-ui-flow-group-handle-sw"
+                                  x="-4" y="@(group.Height - 4)" width="8" height="8"
+                                  @onmousedown="(e) => StartGroupResize(group, handleSw, e)"
+                                  @onmousedown:stopPropagation="true" />
+                            <rect class="red-ui-flow-group-handle red-ui-flow-group-handle-se"
+                                  x="@(group.Width - 4)" y="@(group.Height - 4)" width="8" height="8"
+                                  @onmousedown="(e) => StartGroupResize(group, handleSe, e)"
+                                  @onmousedown:stopPropagation="true" />
+                            
+                            @* Edge handles *@
+                            <rect class="red-ui-flow-group-handle red-ui-flow-group-handle-n"
+                                  x="@(group.Width / 2 - 4)" y="-4" width="8" height="8"
+                                  @onmousedown="(e) => StartGroupResize(group, handleN, e)"
+                                  @onmousedown:stopPropagation="true" />
+                            <rect class="red-ui-flow-group-handle red-ui-flow-group-handle-s"
+                                  x="@(group.Width / 2 - 4)" y="@(group.Height - 4)" width="8" height="8"
+                                  @onmousedown="(e) => StartGroupResize(group, handleS, e)"
+                                  @onmousedown:stopPropagation="true" />
+                            <rect class="red-ui-flow-group-handle red-ui-flow-group-handle-w"
+                                  x="-4" y="@(group.Height / 2 - 4)" width="8" height="8"
+                                  @onmousedown="(e) => StartGroupResize(group, handleW, e)"
+                                  @onmousedown:stopPropagation="true" />
+                            <rect class="red-ui-flow-group-handle red-ui-flow-group-handle-e"
+                                  x="@(group.Width - 4)" y="@(group.Height / 2 - 4)" width="8" height="8"
+                                  @onmousedown="(e) => StartGroupResize(group, handleE, e)"
+                                  @onmousedown:stopPropagation="true" />
+                        }
+                    </g>
+                }
+            </g>
+            
+            @* ============================================================
+               SECTION 16: SUBFLOW PORTS
+               SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/subflow.js
+               ============================================================
+               When editing a subflow, show input/output/status port nodes
+               ============================================================ *@
+            @if (IsEditingSubflow())
+            {
+                var subflow = GetCurrentSubflow();
+                if (subflow != null)
+                {
+                    @* Subflow input port (left side) *@
+                    @foreach (var inPort in subflow.In)
+                    {
+                        <g class="red-ui-flow-subflow-port red-ui-flow-subflow-port-input"
+                           transform="translate(@inPort.X, @inPort.Y)">
+                            <rect width="30" height="25" rx="5" ry="5" />
+                            <text x="15" y="16" text-anchor="middle">in</text>
+                            @* Output port on the right side of input node *@
+                            <rect class="red-ui-flow-port" x="25" y="7" width="10" height="10" rx="3" ry="3" />
+                        </g>
+                    }
+                    
+                    @* Subflow output ports (right side) *@
+                    @for (int i = 0; i < subflow.Out.Count; i++)
+                    {
+                        var outPort = subflow.Out[i];
+                        var portIndex = i;
+                        <g class="red-ui-flow-subflow-port red-ui-flow-subflow-port-output"
+                           transform="translate(@outPort.X, @outPort.Y)">
+                            <rect width="30" height="25" rx="5" ry="5" />
+                            <text x="15" y="16" text-anchor="middle">@(portIndex + 1)</text>
+                            @* Input port on the left side of output node *@
+                            <rect class="red-ui-flow-port" x="-5" y="7" width="10" height="10" rx="3" ry="3" />
+                        </g>
+                    }
+                    
+                    @* Subflow status node *@
+                    @if (subflow.Status != null)
+                    {
+                        <g class="red-ui-flow-subflow-port red-ui-flow-subflow-port-status"
+                           transform="translate(@subflow.Status.X, @subflow.Status.Y)">
+                            <rect width="40" height="25" rx="5" ry="5" />
+                            <text x="20" y="16" text-anchor="middle">status</text>
+                            <rect class="red-ui-flow-port" x="-5" y="7" width="10" height="10" rx="3" ry="3" />
+                        </g>
+                    }
+                }
+            }
+            
+            @* Wires/Links *@
+            <g class="red-ui-workspace-chart-wires">
+                @foreach (var wire in GetActiveFlowWires())
+                {
+                    <path class="red-ui-workspace-wire @(wire.Selected ? "selected" : "")"
+                          d="@wire.Path"
+                          stroke="@(wire.Selected ? "#ff7f0e" : wire.Color)"
+                          stroke-width="3"
+                          fill="none"
+                          @onclick="() => SelectWire(wire)"
+                          @onclick:stopPropagation="true" />
+                }
+
+                @* ============================================================
+                   SOURCE: packages/node_modules/@node-red/editor-client/src/sass/flow.scss
+                   LINES: 355-360
+                   ============================================================
+                   .red-ui-flow-drag-line {
+                       stroke: var(--red-ui-view-lasso-stroke) !important;  // #ff7f0e
+                       stroke-width: 3;
+                   }
+                   ============================================================ *@
+                @if (State.IsDrawingWire)
+                {
+                    <path class="red-ui-flow-drag-line"
+                          d="@GetDrawingWirePath()"
+                          stroke="#ff7f0e"
+                          stroke-width="3"
+                          fill="none" />
+                }
+            </g>
+            
+            @* Nodes *@
+            <g class="red-ui-workspace-chart-nodes">
+                @foreach (var node in GetActiveFlowNodes())
+                {
+                    var isSubflowInstance = node.Type.StartsWith("subflow:", StringComparison.Ordinal);
+                    <g class="red-ui-workspace-node @(node.Selected ? "selected" : "") @(isSubflowInstance ? "red-ui-flow-subflow-instance" : "")"
+                       data-node-id="@node.Id"
+                       transform="translate(@node.X, @node.Y)">
+                        
+                        @* ============================================================
+                           SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/view.js
+                           LINES: 4768-4788
+                           ============================================================
+                           Node body: rect with rx=5, ry=5, fill from node color
+                           ============================================================ *@
+                        <rect class="red-ui-flow-node"
+                              width="@node.Width" 
+                              height="@node.Height"
+                              rx="5" ry="5"
+                              fill="@node.Color" />
+                        
+                        @* ============================================================
+                           SECTION 16.2: Subflow Instance Indicator
+                           SOURCE: packages/node_modules/@node-red/editor-client/src/sass/subflow.scss
+                           ============================================================
+                           Subflow instances have a visual indicator (small rectangle in top-right)
+                           ============================================================ *@
+                        @if (isSubflowInstance)
+                        {
+                            <rect class="red-ui-flow-subflow-indicator"
+                                  x="@(node.Width - 12)" y="2"
+                                  width="10" height="10"
+                                  rx="2" ry="2"
+                                  fill="#fff"
+                                  fill-opacity="0.5" />
+                        }
+                        
+                        @* ============================================================
+                           SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/view.js
+                           LINES: 4792-4818
+                           ============================================================
+                           Icon shade: 30px wide area with semi-transparent background
+                           and vertical border line
+                           ============================================================ *@
+                        <g class="red-ui-flow-node-icon-group">
+                            @* Icon background shade *@
+                            <path class="red-ui-flow-node-icon-shade" 
+                                  d="M 0 4.5 Q 0 0 4.5 0 L 26 0 L 26 @node.Height L 4.5 @node.Height Q 0 @node.Height 0 @(node.Height - 4.5) Z" />
+                            @* Icon shade border (vertical line at 30px) *@
+                            <path class="red-ui-flow-node-icon-shade-border" 
+                                  d="M 30 1 l 0 @(node.Height - 2)" />
+                            @* Node icon *@
+                            <g transform="translate(8, @(node.Height / 2 - 8))">
+                                <text class="red-ui-flow-node-icon-fa fa-lg" 
+                                      font-family="FontAwesome"
+                                      font-size="16"
+                                      fill="#fff">@EditorUtils.GetNodeIcon(node.Type)</text>
+                            </g>
+                        </g>
+                        
+                        @* ============================================================
+                           SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/view.js
+                           LINES: 4819-4825
+                           ============================================================
+                           Node label: positioned at x=38, centered vertically
+                           ============================================================ *@
+                        <g class="red-ui-flow-node-label" transform="translate(38, @(node.Height / 2 + 4))">
+                            <text class="red-ui-flow-node-label-text">
+                                @(node.Name ?? node.Label)
+                            </text>
+                        </g>
+                        
+                        @* Input ports *@
+                        @if (node.Inputs > 0)
+                        {
+                            for (int i = 0; i < node.Inputs; i++)
+                            {
+                                var portY = node.Inputs == 1 
+                                    ? node.Height / 2 - 5 
+                                    : (node.Height / (node.Inputs + 1)) * (i + 1) - 5;
+                                var portIndex = i;
+                                
+                                <rect class="red-ui-flow-port red-ui-flow-port-input"
+                                      data-port-index="@portIndex"
+                                      x="-5" y="@portY"
+                                      width="10" height="10"
+                                      rx="3" ry="3" />
+                            }
+                        }
+                        
+                        @* Output ports *@
+                        @for (int i = 0; i < node.Outputs; i++)
+                        {
+                            var portY = node.Outputs == 1 
+                                ? node.Height / 2 - 5 
+                                : (node.Height / (node.Outputs + 1)) * (i + 1) - 5;
+                            var portIndex = i;
+                            
+                            <rect class="red-ui-flow-port red-ui-flow-port-output"
+                                  data-port-index="@portIndex"
+                                  x="@(node.Width - 5)" y="@portY"
+                                  width="10" height="10"
+                                  rx="3" ry="3" />
+                        }
+                        
+                        @* ============================================================
+                           SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/view.js
+                           LINES: 4827-4870
+                           ============================================================
+                           Status group: dot + label, positioned below node
+                           ============================================================ *@
+                        @if (!string.IsNullOrEmpty(node.StatusText))
+                        {
+                            <g class="red-ui-flow-node-status-group" transform="translate(0, @(node.Height + 3))">
+                                <rect class="red-ui-flow-node-status-background" x="3" y="-1" width="200" height="13" rx="2" ry="2" />
+                                <rect class="red-ui-flow-node-status red-ui-flow-node-status-dot-@(node.StatusFill ?? "grey")" 
+                                      x="6" y="1" width="9" height="9" rx="2" ry="2" />
+                                <text class="red-ui-flow-node-status-label" x="18" y="9">
+                                    @node.StatusText
+                                </text>
+                            </g>
+                        }
+                    </g>
+                }
+            </g>
+            
+            @* ============================================================
+               SOURCE: packages/node_modules/@node-red/editor-client/src/sass/flow.scss
+               LINES: 19-24
+               ============================================================
+               .nr-ui-view-lasso {
+                   stroke-width: 1px;
+                   stroke: var(--red-ui-view-lasso-stroke);   // #ff7f0e
+                   fill: var(--red-ui-view-lasso-fill);       // rgba(20,125,255,0.1)
+                   stroke-dasharray: 10 5;
+               }
+               ============================================================ *@
+            @if (State.IsSelecting)
+            {
+                <rect class="nr-ui-view-lasso"
+                      x="@Math.Min(State.SelectionStart.X, State.SelectionEnd.X)"
+                      y="@Math.Min(State.SelectionStart.Y, State.SelectionEnd.Y)"
+                      width="@Math.Abs(State.SelectionEnd.X - State.SelectionStart.X)"
+                      height="@Math.Abs(State.SelectionEnd.Y - State.SelectionStart.Y)" />
+            }
+        </svg>
+    </div>
+</div>
+
+@code {
+    private ElementReference _canvasRef;
+    private DotNetObjectReference<Workspace>? _dotNetRef;
+    private bool _initialized = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !_initialized)
+        {
+            _dotNetRef = DotNetObjectReference.Create(this);
+            try
+            {
+                await JS.InvokeVoidAsync("nodeRedEditor.initCanvas", _canvasRef, _dotNetRef);
+                await JS.InvokeVoidAsync("nodeRedEditor.initKeyboard", _dotNetRef);
+                await JS.InvokeVoidAsync("nodeRedEditor.initPaletteDragBySelector", 
+                    "#red-ui-palette", _canvasRef, _dotNetRef);
+            }
+            catch (JSException)
+            {
+                // JS interop not available (SSR or prerendering)
+            }
+            _initialized = true;
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _dotNetRef?.Dispose();
+    }
+
+    private List<FlowNode> GetActiveFlowNodes()
+    {
+        return State.Nodes.Where(n => n.FlowId == State.ActiveFlowId).ToList();
+    }
+
+    private List<FlowWire> GetActiveFlowWires()
+    {
+        return State.Wires.Where(w => w.FlowId == State.ActiveFlowId).ToList();
+    }
+
+    private void SelectFlow(string flowId)
+    {
+        State.ActiveFlowId = flowId;
+        StateHasChanged();
+    }
+
+    private void EditFlow(Flow flow)
+    {
+        // Open flow properties editor
+        State.CurrentTray = new TrayConfig
+        {
+            Title = "Edit flow",
+            Open = true,
+            ShowDelete = true,
+            OnSave = () => { },
+            OnDelete = () => { State.Flows.Remove(flow); }
+        };
+        State.ShowShade = true;
+        StateHasChanged();
+    }
+
+    private void AddFlow()
+    {
+        var newFlow = new Flow
+        {
+            Id = NodeRed.Util.Util.GenerateId(),
+            Label = $"Flow {State.Flows.Count + 1}",
+            Type = "tab"
+        };
+        State.Flows.Add(newFlow);
+        State.ActiveFlowId = newFlow.Id;
+        State.MarkDirty();
+        StateHasChanged();
+    }
+
+    private void SelectWire(FlowWire wire)
+    {
+        if (!State.IsMultiSelect)
+        {
+            foreach (var n in State.Nodes) n.Selected = false;
+            foreach (var w in State.Wires) w.Selected = false;
+        }
+        wire.Selected = !wire.Selected;
+        StateHasChanged();
+    }
+
+    private void EditNode(FlowNode node)
+    {
+        State.OpenNodeEditor(node);
+        StateHasChanged();
+    }
+
+    private void ShowNodeContextMenu(FlowNode node, MouseEventArgs e)
+    {
+        State.ContextMenuPosition = new Point((int)e.ClientX, (int)e.ClientY);
+        State.ContextMenuItems = new List<ContextMenuItem>
+        {
+            new() { Label = "Edit", Icon = "pencil", Action = () => EditNode(node) },
+            new() { Label = "Copy", Icon = "files-o", Shortcut = "Ctrl+C", Action = () => CopySelected() },
+            new() { Label = "Cut", Icon = "cut", Shortcut = "Ctrl+X", Action = () => CutSelected() },
+            new() { IsSeparator = true },
+            new() { Label = "Delete", Icon = "trash", Shortcut = "Delete", Action = () => DeleteSelected() },
+            new() { IsSeparator = true },
+            new() { Label = "Enable", Action = () => { } },
+            new() { Label = "Disable", Action = () => { } }
+        };
+        State.ContextMenuOpen = true;
+        State.NotifyStateChanged();
+        StateHasChanged();
+    }
+
+    private string GetDrawingWirePath()
+    {
+        if (!State.IsDrawingWire || string.IsNullOrEmpty(State.WireSourceNodeId))
+            return "";
+
+        var sourceNode = State.Nodes.FirstOrDefault(n => n.Id == State.WireSourceNodeId);
+        if (sourceNode == null) return "";
+
+        var sourceY = sourceNode.Outputs == 1 
+            ? sourceNode.Y + sourceNode.Height / 2 
+            : sourceNode.Y + (sourceNode.Height / (sourceNode.Outputs + 1)) * (State.WireSourcePort + 1);
+        var sourceX = sourceNode.X + sourceNode.Width;
+
+        return CalculateWirePathFromPoints(sourceX, sourceY, State.WireDrawEnd.X, State.WireDrawEnd.Y);
+    }
+
+    private void UpdateWirePaths()
+    {
+        foreach (var wire in State.Wires.Where(w => w.FlowId == State.ActiveFlowId))
+        {
+            wire.Path = CalculateWirePath(wire);
+        }
+    }
+
+    private string CalculateWirePath(FlowWire wire)
+    {
+        var sourceNode = State.Nodes.FirstOrDefault(n => n.Id == wire.SourceId);
+        var targetNode = State.Nodes.FirstOrDefault(n => n.Id == wire.TargetId);
+
+        if (sourceNode == null || targetNode == null)
+        {
+            return "";
+        }
+
+        var sourceY = sourceNode.Outputs == 1
+            ? sourceNode.Y + sourceNode.Height / 2
+            : sourceNode.Y + (sourceNode.Height / (sourceNode.Outputs + 1)) * (wire.SourcePort + 1);
+        var sourceX = sourceNode.X + sourceNode.Width;
+
+        var targetY = targetNode.Inputs == 1
+            ? targetNode.Y + targetNode.Height / 2
+            : targetNode.Y + (targetNode.Height / (targetNode.Inputs + 1)) * (wire.TargetPort + 1);
+        var targetX = targetNode.X;
+
+        return CalculateWirePathFromPoints(sourceX, sourceY, targetX, targetY);
+    }
+
+    private string CalculateWirePathFromPoints(int x1, int y1, int x2, int y2)
+    {
+        var dx = Math.Abs(x2 - x1);
+        var dy = Math.Abs(y2 - y1);
+        
+        var cp = Math.Max(75, dx / 2);
+        
+        if (x2 < x1)
+        {
+            cp = Math.Max(75, dy / 2);
+        }
+        
+        return $"M {x1} {y1} C {x1 + cp} {y1}, {x2 - cp} {y2}, {x2} {y2}";
+    }
+
+    private void DeleteSelected()
+    {
+        var selectedNodes = State.Nodes.Where(n => n.Selected).ToList();
+        var selectedWires = State.Wires.Where(w => w.Selected).ToList();
+
+        foreach (var node in selectedNodes)
+        {
+            State.Nodes.Remove(node);
+            // Remove connected wires
+            State.Wires.RemoveAll(w => w.SourceId == node.Id || w.TargetId == node.Id);
+        }
+
+        foreach (var wire in selectedWires)
+        {
+            State.Wires.Remove(wire);
+        }
+
+        if (selectedNodes.Count > 0 || selectedWires.Count > 0)
+        {
+            State.MarkDirty();
+            StateHasChanged();
+        }
+    }
+
+    private void SelectAll()
+    {
+        foreach (var node in GetActiveFlowNodes())
+        {
+            node.Selected = true;
+        }
+        StateHasChanged();
+    }
+
+    private void CopySelected()
+    {
+        State.ClipboardNodes = State.Nodes.Where(n => n.Selected).ToList();
+        State.ClipboardWires = State.Wires.Where(w =>
+            State.ClipboardNodes.Any(n => n.Id == w.SourceId) &&
+            State.ClipboardNodes.Any(n => n.Id == w.TargetId)
+        ).ToList();
+    }
+
+    private void CutSelected()
+    {
+        CopySelected();
+        DeleteSelected();
+    }
+
+    private void PasteClipboard()
+    {
+        if (State.ClipboardNodes.Count == 0) return;
+
+        var idMap = new Dictionary<string, string>();
+        var offsetX = 20;
+        var offsetY = 20;
+
+        foreach (var node in State.ClipboardNodes)
+        {
+            var newId = NodeRed.Util.Util.GenerateId();
+            idMap[node.Id] = newId;
+
+            var newNode = new FlowNode
+            {
+                Id = newId,
+                Type = node.Type,
+                Name = node.Name,
+                Label = node.Label,
+                FlowId = State.ActiveFlowId,
+                X = node.X + offsetX,
+                Y = node.Y + offsetY,
+                Width = node.Width,
+                Height = node.Height,
+                Color = node.Color,
+                Inputs = node.Inputs,
+                Outputs = node.Outputs,
+                Selected = true
+            };
+            State.Nodes.Add(newNode);
+        }
+
+        // Deselect original nodes
+        foreach (var node in State.Nodes.Where(n => State.ClipboardNodes.Any(c => c.Id == n.Id)))
+        {
+            node.Selected = false;
+        }
+
+        // Add wires
+        foreach (var wire in State.ClipboardWires)
+        {
+            var newWire = new FlowWire
+            {
+                SourceId = idMap[wire.SourceId],
+                SourcePort = wire.SourcePort,
+                TargetId = idMap[wire.TargetId],
+                TargetPort = wire.TargetPort,
+                FlowId = State.ActiveFlowId
+            };
+            newWire.Path = CalculateWirePath(newWire);
+            State.Wires.Add(newWire);
+        }
+
+        State.MarkDirty();
+        StateHasChanged();
+    }
+
+    // ============================================================
+    // JS Interop callbacks
+    // ============================================================
+
+    [JSInvokable]
+    public void OnKeyboardShortcut(string action)
+    {
+        switch (action)
+        {
+            case "deleteSelected":
+                DeleteSelected();
+                break;
+            case "selectAll":
+                SelectAll();
+                break;
+            case "copy":
+                CopySelected();
+                break;
+            case "cut":
+                CutSelected();
+                break;
+            case "paste":
+                PasteClipboard();
+                break;
+            case "escape":
+                State.IsDrawingWire = false;
+                State.IsSelecting = false;
+                State.ContextMenuOpen = false;
+                foreach (var n in State.Nodes) n.Selected = false;
+                StateHasChanged();
+                break;
+            case "zoomIn":
+                // ============================================================
+                // SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/view.js
+                // LINES: 2489-2493
+                // ============================================================
+                // function zoomIn() {
+                //     if (scaleFactor < 2) {
+                //         zoomView(scaleFactor+0.1);
+                //     }
+                // }
+                // ============================================================
+                if (State.Scale < 2.0)
+                {
+                    State.Scale = Math.Round(State.Scale + 0.1, 1);
+                }
+                StateHasChanged();
+                break;
+            case "zoomOut":
+                // ============================================================
+                // SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/view.js
+                // LINES: 2494-2498
+                // ============================================================
+                // function zoomOut() {
+                //     if (scaleFactor > 0.3) {
+                //         zoomView(scaleFactor-0.1);
+                //     }
+                // }
+                // ============================================================
+                if (State.Scale > 0.3)
+                {
+                    State.Scale = Math.Round(State.Scale - 0.1, 1);
+                }
+                StateHasChanged();
+                break;
+            case "zoomReset":
+                // ============================================================
+                // SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/view.js
+                // LINE: 2499
+                // ============================================================
+                // function zoomZero() { zoomView(1); }
+                // ============================================================
+                State.Scale = 1.0;
+                StateHasChanged();
+                break;
+        }
+    }
+
+    [JSInvokable]
+    public void OnModifierKeyUp(string key)
+    {
+        if (key == "shift")
+        {
+            State.IsMultiSelect = false;
+        }
+    }
+
+    [JSInvokable]
+    public void OnCanvasZoom(double scale, double offsetX, double offsetY)
+    {
+        State.Scale = scale;
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public async Task OnNodeDoubleClick(string nodeId)
+    {
+        var node = State.Nodes.FirstOrDefault(n => n.Id == nodeId);
+        if (node != null)
+        {
+            await InvokeAsync(() => EditNode(node));
+        }
+    }
+
+    [JSInvokable]
+    public async Task OnContextMenu(string nodeId, double x, double y)
+    {
+        await InvokeAsync(() =>
+        {
+            if (!string.IsNullOrEmpty(nodeId))
+            {
+                var node = State.Nodes.FirstOrDefault(n => n.Id == nodeId);
+                if (node != null)
+                {
+                    ShowNodeContextMenu(node, new MouseEventArgs { ClientX = x, ClientY = y });
+                }
+            }
+            else
+            {
+                // Canvas context menu
+                State.ContextMenuPosition = new Point((int)x, (int)y);
+                State.ContextMenuItems = new List<ContextMenuItem>
+                {
+                    new() { Label = "Paste", Icon = "clipboard", Shortcut = "Ctrl+V", Action = () => PasteClipboard(), Disabled = State.ClipboardNodes.Count == 0 },
+                    new() { IsSeparator = true },
+                    new() { Label = "Add subflow", Icon = "plus" },
+                    new() { Label = "Import", Icon = "download", Shortcut = "Ctrl+I" },
+                    new() { Label = "Export", Icon = "upload", Shortcut = "Ctrl+E" }
+                };
+                State.ContextMenuOpen = true;
+                State.NotifyStateChanged();
+                StateHasChanged();
+            }
+        });
+    }
+
+    [JSInvokable]
+    public void OnNodeDropped(string type, string label, string color, int inputs, int outputs, int x, int y)
+    {
+        var newNode = new FlowNode
+        {
+            Id = NodeRed.Util.Util.GenerateId(),
+            Type = type,
+            Label = label,
+            FlowId = State.ActiveFlowId,
+            X = x,
+            Y = y,
+            Width = 120,
+            Height = 30,
+            Color = color,
+            Inputs = inputs,
+            Outputs = outputs
+        };
+        State.Nodes.Add(newNode);
+        State.MarkDirty();
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void OnPaletteDragStart(string nodeType)
+    {
+        // Optional: Track that a palette drag has started
+        // This is informational - the actual node creation happens on drop
+    }
+
+    // ============================================================
+    // New JSInvokable methods for improved mouse interactions
+    // ============================================================
+
+    [JSInvokable]
+    public void OnNodeClick(string nodeId, bool shiftKey, bool ctrlKey)
+    {
+        var node = State.Nodes.FirstOrDefault(n => n.Id == nodeId);
+        if (node != null)
+        {
+            if (!shiftKey && !ctrlKey)
+            {
+                // Single click without modifiers - deselect all and select this node
+                foreach (var n in State.Nodes) n.Selected = false;
+                foreach (var w in State.Wires) w.Selected = false;
+                node.Selected = true;
+            }
+            else
+            {
+                // Shift or Ctrl click - toggle selection
+                node.Selected = !node.Selected;
+            }
+            StateHasChanged();
+        }
+    }
+
+    [JSInvokable]
+    public void OnNodeDragStart(string nodeId, double startX, double startY)
+    {
+        State.IsDraggingNode = true;
+        State.DraggingNodeId = nodeId;
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void OnNodeDrag(string nodeId, double newX, double newY)
+    {
+        var node = State.Nodes.FirstOrDefault(n => n.Id == nodeId);
+        if (node != null)
+        {
+            node.X = (int)newX;
+            node.Y = (int)newY;
+            UpdateWirePaths();
+            StateHasChanged();
+        }
+    }
+
+    [JSInvokable]
+    public void OnNodeDragEnd(string nodeId, double x, double y)
+    {
+        State.IsDraggingNode = false;
+        State.DraggingNodeId = null;
+        State.MarkDirty();
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void OnWireDrawStart(string nodeId, int portIndex, double x, double y)
+    {
+        State.IsDrawingWire = true;
+        State.WireSourceNodeId = nodeId;
+        State.WireSourcePort = portIndex;
+        
+        var sourceNode = State.Nodes.FirstOrDefault(n => n.Id == nodeId);
+        if (sourceNode != null)
+        {
+            var sourceY = sourceNode.Outputs == 1 
+                ? sourceNode.Y + sourceNode.Height / 2 
+                : sourceNode.Y + (sourceNode.Height / (sourceNode.Outputs + 1)) * (portIndex + 1);
+            var sourceX = sourceNode.X + sourceNode.Width;
+            State.WireDrawEnd = new Point(sourceX, sourceY);
+        }
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void OnWireDraw(double x, double y)
+    {
+        State.WireDrawEnd = new Point((int)x, (int)y);
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void OnWireDrawEnd(string targetNodeId, int targetPortIndex, bool connected)
+    {
+        if (connected && !string.IsNullOrEmpty(State.WireSourceNodeId) && !string.IsNullOrEmpty(targetNodeId))
+        {
+            var sourceNode = State.Nodes.FirstOrDefault(n => n.Id == State.WireSourceNodeId);
+            var targetNode = State.Nodes.FirstOrDefault(n => n.Id == targetNodeId);
+            
+            if (sourceNode != null && targetNode != null && sourceNode.Id != targetNode.Id)
+            {
+                // Check if wire already exists
+                var existingWire = State.Wires.FirstOrDefault(w =>
+                    w.SourceId == State.WireSourceNodeId &&
+                    w.SourcePort == State.WireSourcePort &&
+                    w.TargetId == targetNodeId &&
+                    w.TargetPort == targetPortIndex);
+
+                if (existingWire == null)
+                {
+                    var newWire = new FlowWire
+                    {
+                        SourceId = State.WireSourceNodeId,
+                        SourcePort = State.WireSourcePort,
+                        TargetId = targetNodeId,
+                        TargetPort = targetPortIndex,
+                        FlowId = State.ActiveFlowId
+                    };
+                    newWire.Path = CalculateWirePath(newWire);
+                    State.Wires.Add(newWire);
+                    State.MarkDirty();
+                }
+            }
+        }
+
+        State.IsDrawingWire = false;
+        State.WireSourceNodeId = null;
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void OnLassoStart(double x, double y)
+    {
+        State.IsSelecting = true;
+        State.SelectionStart = new Point((int)x, (int)y);
+        State.SelectionEnd = State.SelectionStart;
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void OnLassoDraw(double startX, double startY, double endX, double endY)
+    {
+        State.SelectionEnd = new Point((int)endX, (int)endY);
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void OnLassoEnd(double startX, double startY, double endX, double endY)
+    {
+        // Select nodes in lasso
+        var minX = Math.Min(startX, endX);
+        var minY = Math.Min(startY, endY);
+        var maxX = Math.Max(startX, endX);
+        var maxY = Math.Max(startY, endY);
+
+        foreach (var node in GetActiveFlowNodes())
+        {
+            if (node.X >= minX && node.X + node.Width <= maxX &&
+                node.Y >= minY && node.Y + node.Height <= maxY)
+            {
+                node.Selected = true;
+            }
+        }
+
+        State.IsSelecting = false;
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void OnCanvasPan(double dx, double dy)
+    {
+        State.ScrollPosition = new Point(
+            State.ScrollPosition.X + (int)dx,
+            State.ScrollPosition.Y + (int)dy);
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void OnCanvasClick()
+    {
+        // Deselect all
+        foreach (var n in State.Nodes) n.Selected = false;
+        foreach (var w in State.Wires) w.Selected = false;
+        State.ContextMenuOpen = false;
+        StateHasChanged();
+    }
+
+    // ============================================================
+    // SECTION 17: GROUP METHODS
+    // SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/group.js
+    // ============================================================
+
+    private List<NodeGroup> GetActiveFlowGroups()
+    {
+        return State.GroupManager.GetGroupsForFlow(State.ActiveFlowId).ToList();
+    }
+
+    private void SelectGroup(NodeGroup group, MouseEventArgs e)
+    {
+        if (!e.ShiftKey && !e.CtrlKey)
+        {
+            foreach (var n in State.Nodes) n.Selected = false;
+            foreach (var w in State.Wires) w.Selected = false;
+            foreach (var g in State.GroupManager.Groups) g.Selected = false;
+        }
+        group.Selected = !group.Selected;
+        StateHasChanged();
+    }
+
+    private void EditGroup(NodeGroup group)
+    {
+        State.EditingGroup = group;
+        State.ShowGroupDialog = true;
+        StateHasChanged();
+    }
+
+    private void StartGroupDrag(NodeGroup group, MouseEventArgs e)
+    {
+        if (e.Button == 0)
+        {
+            State.IsDraggingGroup = true;
+            State.DraggingGroupId = group.Id;
+            State.DragOffset = new Point((int)e.OffsetX - group.X, (int)e.OffsetY - group.Y);
+        }
+    }
+
+    private void StartGroupResize(NodeGroup group, string handle, MouseEventArgs e)
+    {
+        State.IsResizingGroup = true;
+        State.ResizingGroupId = group.Id;
+        group.ActiveResizeHandle = handle;
+        State.LastMousePosition = new Point((int)e.OffsetX, (int)e.OffsetY);
+    }
+
+    private void ShowGroupContextMenu(NodeGroup group, MouseEventArgs e)
+    {
+        State.ContextMenuPosition = new Point((int)e.ClientX, (int)e.ClientY);
+        State.ContextMenuItems = new List<ContextMenuItem>
+        {
+            new() { Label = "Edit group", Icon = "pencil", Action = () => EditGroup(group) },
+            new() { Label = "Select all in group", Icon = "object-group", Action = () => SelectAllInGroup(group) },
+            new() { IsSeparator = true },
+            new() { Label = "Ungroup", Icon = "object-ungroup", Action = () => UngroupNodes(group) },
+            new() { IsSeparator = true },
+            new() { Label = "Delete group", Icon = "trash", Action = () => DeleteGroup(group) }
+        };
+        State.ContextMenuOpen = true;
+        StateHasChanged();
+    }
+
+    private void SelectAllInGroup(NodeGroup group)
+    {
+        foreach (var nodeId in group.Nodes)
+        {
+            var node = State.Nodes.FirstOrDefault(n => n.Id == nodeId);
+            if (node != null) node.Selected = true;
+        }
+        State.ContextMenuOpen = false;
+        StateHasChanged();
+    }
+
+    private void UngroupNodes(NodeGroup group)
+    {
+        State.GroupManager.RemoveGroup(group.Id);
+        State.ContextMenuOpen = false;
+        State.MarkDirty();
+        StateHasChanged();
+    }
+
+    private void DeleteGroup(NodeGroup group)
+    {
+        // Delete nodes in group as well
+        foreach (var nodeId in group.Nodes)
+        {
+            var node = State.Nodes.FirstOrDefault(n => n.Id == nodeId);
+            if (node != null)
+            {
+                State.Nodes.Remove(node);
+                State.Wires.RemoveAll(w => w.SourceId == nodeId || w.TargetId == nodeId);
+            }
+        }
+        State.GroupManager.RemoveGroup(group.Id);
+        State.ContextMenuOpen = false;
+        State.MarkDirty();
+        StateHasChanged();
+    }
+
+    // ============================================================
+    // SECTION 16: SUBFLOW METHODS
+    // SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/subflow.js
+    // ============================================================
+
+    private bool IsEditingSubflow()
+    {
+        // Check if the active flow is a subflow
+        var flow = State.Flows.FirstOrDefault(f => f.Id == State.ActiveFlowId);
+        return flow?.Type == "subflow";
+    }
+
+    private Subflow? GetCurrentSubflow()
+    {
+        return State.SubflowManager?.GetSubflow(State.ActiveFlowId);
+    }
+}

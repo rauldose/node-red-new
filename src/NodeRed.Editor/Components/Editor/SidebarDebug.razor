@@ -1,0 +1,39 @@
+@* Sidebar Debug Tab *@
+@using NodeRed.Editor.Services
+@inject EditorState State
+
+<div class="red-ui-sidebar-debug">
+    <div class="red-ui-sidebar-header">
+        <span>Debug messages</span>
+        <button class="red-ui-sidebar-header-button" @onclick="ClearMessages">
+            <i class="fa fa-trash"></i>
+        </button>
+    </div>
+    <div class="red-ui-debug-content">
+        @if (State.DebugMessages.Count == 0)
+        {
+            <div class="red-ui-debug-empty">
+                <p>No debug messages</p>
+            </div>
+        }
+        else
+        {
+            @foreach (var msg in State.DebugMessages.TakeLast(100).Reverse())
+            {
+                <div class="red-ui-debug-msg @msg.Level">
+                    <span class="red-ui-debug-msg-date">@msg.Timestamp.ToString("HH:mm:ss.fff")</span>
+                    <span class="red-ui-debug-msg-topic">@msg.Topic</span>
+                    <span class="red-ui-debug-msg-payload">@msg.Payload</span>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+@code {
+    private void ClearMessages()
+    {
+        State.DebugMessages.Clear();
+        StateHasChanged();
+    }
+}
