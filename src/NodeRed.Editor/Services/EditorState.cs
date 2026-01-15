@@ -44,9 +44,24 @@ public class EditorState
     public string Version { get; set; } = "1.0.0";
 
     // Canvas state
-    public int CanvasWidth { get; set; } = 5000;
-    public int CanvasHeight { get; set; } = 5000;
+    // ============================================================
+    // SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/view.js
+    // LINES: 33-50
+    // ============================================================
+    // var space_width = 8000,
+    //     space_height = 8000,
+    //     lineCurveScale = 0.75,
+    //     scaleFactor = 1,
+    // var gridSize = 20;
+    // var snapGrid = false;
+    // ============================================================
+    public int CanvasWidth { get; set; } = 8000;
+    public int CanvasHeight { get; set; } = 8000;
     public double Scale { get; set; } = 1.0;
+    public int GridSize { get; set; } = 20;
+    public bool SnapGrid { get; set; } = false;
+    public bool ShowGrid { get; set; } = true;
+    public double LineCurveScale { get; set; } = 0.75;
     public Point ScrollPosition { get; set; } = new(0, 0);
     public Point DropPosition { get; set; } = new(0, 0);
     public bool IsSelecting { get; set; }

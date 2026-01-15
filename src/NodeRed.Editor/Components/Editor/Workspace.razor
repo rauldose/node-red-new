@@ -45,19 +45,56 @@
          @onkeydown="OnKeyDown"
          tabindex="0">
         
+        @* ============================================================
+           SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/view.js
+           LINES: 336-348
+           ============================================================
+           outer = d3.select("#red-ui-workspace-chart")
+               .append("svg:svg")
+               .attr("width", space_width)      // 8000
+               .attr("height", space_height)   // 8000
+               .attr("pointer-events", "all")
+               .style("cursor","crosshair")
+           ============================================================ *@
         <svg class="red-ui-workspace-chart-svg" 
-             width="100%" 
-             height="100%"
-             viewBox="@ViewBox"
-             style="transform: scale(@State.Scale.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)); transform-origin: 0 0;">
+             width="@State.CanvasWidth" 
+             height="@State.CanvasHeight"
+             pointer-events="all"
+             style="cursor: crosshair; touch-action: none;">
             
-            @* Grid pattern *@
-            <defs>
-                <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-                    <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f0f0f0" stroke-width="0.5"/>
-                </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#grid)" />
+            @* ============================================================
+               SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/view.js
+               LINES: 989-1016 (updateGrid function)
+               ============================================================
+               Node-RED uses SVG lines for grid, spaced at gridSize (20px)
+               Horizontal and vertical lines across the full canvas
+               ============================================================ *@
+            
+            @* Background rect *@
+            <rect class="red-ui-workspace-chart-background" 
+                  width="@State.CanvasWidth" 
+                  height="@State.CanvasHeight" />
+            
+            @* Grid lines *@
+            @if (State.ShowGrid)
+            {
+                <g class="red-ui-workspace-chart-grid">
+                    @* Horizontal lines *@
+                    @for (int i = 0; i < State.CanvasHeight; i += State.GridSize)
+                    {
+                        <line class="red-ui-workspace-chart-grid-h"
+                              x1="0" x2="@State.CanvasWidth"
+                              y1="@i" y2="@i" />
+                    }
+                    @* Vertical lines *@
+                    @for (int i = 0; i < State.CanvasWidth; i += State.GridSize)
+                    {
+                        <line class="red-ui-workspace-chart-grid-v"
+                              x1="@i" x2="@i"
+                              y1="0" y2="@State.CanvasHeight" />
+                    }
+                </g>
+            }
             
             @* Wires/Links *@
             <g class="red-ui-workspace-chart-wires">
@@ -181,17 +218,24 @@
                 }
             </g>
             
-            @* Selection box (lasso) *@
+            @* ============================================================
+               SOURCE: packages/node_modules/@node-red/editor-client/src/sass/flow.scss
+               LINES: 19-24
+               ============================================================
+               .nr-ui-view-lasso {
+                   stroke-width: 1px;
+                   stroke: var(--red-ui-view-lasso-stroke);   // #ff7f0e
+                   fill: var(--red-ui-view-lasso-fill);       // rgba(20,125,255,0.1)
+                   stroke-dasharray: 10 5;
+               }
+               ============================================================ *@
             @if (State.IsSelecting)
             {
-                <rect class="red-ui-workspace-lasso"
+                <rect class="nr-ui-view-lasso"
                       x="@Math.Min(State.SelectionStart.X, State.SelectionEnd.X)"
                       y="@Math.Min(State.SelectionStart.Y, State.SelectionEnd.Y)"
                       width="@Math.Abs(State.SelectionEnd.X - State.SelectionStart.X)"
-                      height="@Math.Abs(State.SelectionEnd.Y - State.SelectionStart.Y)"
-                      fill="rgba(100,100,200,0.1)"
-                      stroke="#666"
-                      stroke-dasharray="4,4" />
+                      height="@Math.Abs(State.SelectionEnd.Y - State.SelectionStart.Y)" />
             }
         </svg>
     </div>
@@ -723,14 +767,46 @@
                 StateHasChanged();
                 break;
             case "zoomIn":
-                State.Scale = Math.Min(2.0, State.Scale * 1.1);
+                // ============================================================
+                // SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/view.js
+                // LINES: 2489-2493
+                // ============================================================
+                // function zoomIn() {
+                //     if (scaleFactor < 2) {
+                //         zoomView(scaleFactor+0.1);
+                //     }
+                // }
+                // ============================================================
+                if (State.Scale < 2.0)
+                {
+                    State.Scale = Math.Round(State.Scale + 0.1, 1);
+                }
                 StateHasChanged();
                 break;
             case "zoomOut":
-                State.Scale = Math.Max(0.25, State.Scale * 0.9);
+                // ============================================================
+                // SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/view.js
+                // LINES: 2494-2498
+                // ============================================================
+                // function zoomOut() {
+                //     if (scaleFactor > 0.3) {
+                //         zoomView(scaleFactor-0.1);
+                //     }
+                // }
+                // ============================================================
+                if (State.Scale > 0.3)
+                {
+                    State.Scale = Math.Round(State.Scale - 0.1, 1);
+                }
                 StateHasChanged();
                 break;
             case "zoomReset":
+                // ============================================================
+                // SOURCE: packages/node_modules/@node-red/editor-client/src/js/ui/view.js
+                // LINE: 2499
+                // ============================================================
+                // function zoomZero() { zoomView(1); }
+                // ============================================================
                 State.Scale = 1.0;
                 StateHasChanged();
                 break;
