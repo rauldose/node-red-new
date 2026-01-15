@@ -1406,6 +1406,9 @@ g.red-ui-flow-link-selected path.red-ui-flow-link-line {
 
 /* ============================================================
    Shade Overlay
+   SOURCE: packages/node_modules/@node-red/editor-client/src/sass/ui/common/shade.scss
+   The shade dims the background but should NOT block pointer events
+   for elements above it (like the tray which has higher z-index).
    ============================================================ */
 #red-ui-full-shade {
     position: fixed;
@@ -1415,6 +1418,7 @@ g.red-ui-flow-link-selected path.red-ui-flow-link-line {
     bottom: 0;
     background: var(--red-ui-shade-color);
     z-index: 999;
+    pointer-events: none;
 }
 
 /* ============================================================

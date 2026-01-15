@@ -58,6 +58,9 @@
             <Sidebar />
         </div>
 
+        @* Full screen shade for dialogs - must be before tray for proper z-index stacking *@
+        <div id="red-ui-full-shade" class="@(State.ShowShade ? "" : "hide")"></div>
+
         @* Editor stack for trays *@
         <div id="red-ui-editor-stack" tabindex="-1">
             @if (State.CurrentTray is not null)
@@ -79,9 +82,6 @@
             </div>
         </div>
     }
-
-    @* Full screen shade for dialogs *@
-    <div id="red-ui-full-shade" class="@(State.ShowShade ? "" : "hide")"></div>
 
     @* Context menu *@
     @if (State.ContextMenuOpen)
