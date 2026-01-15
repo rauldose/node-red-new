@@ -63,4 +63,50 @@ public class FlowMessage
     /// </summary>
     [JsonExtensionData]
     public Dictionary<string, object?>? AdditionalProperties { get; set; }
+
+    /// <summary>
+    /// Set a property value.
+    /// </summary>
+    public void Set(string key, object? value)
+    {
+        AdditionalProperties ??= new Dictionary<string, object?>();
+        AdditionalProperties[key] = value;
+    }
+
+    /// <summary>
+    /// Get a property value.
+    /// </summary>
+    public T? Get<T>(string key)
+    {
+        if (AdditionalProperties is not null && AdditionalProperties.TryGetValue(key, out var value))
+        {
+            if (value is T typedValue)
+            {
+                return typedValue;
+            }
+        }
+        return default;
+    }
+
+    /// <summary>
+    /// Clone the message (preserving Req/Res references).
+    /// </summary>
+    public FlowMessage Clone()
+    {
+        var clone = new FlowMessage
+        {
+            MsgId = Util.GenerateId(), // New ID for cloned message
+            Payload = Payload,
+            Topic = Topic,
+            Req = Req, // Preserve reference
+            Res = Res  // Preserve reference
+        };
+
+        if (AdditionalProperties is not null)
+        {
+            clone.AdditionalProperties = new Dictionary<string, object?>(AdditionalProperties);
+        }
+
+        return clone;
+    }
 }

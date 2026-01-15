@@ -1,0 +1,159 @@
+@* ============================================================
+// SOURCE: packages/node_modules/@node-red/nodes/core/common/21-debug.html
+// ============================================================
+// Debug Node Editor - Edit panel for the debug node
+// ============================================================ *@
+
+@using System.Text.Json.Nodes
+
+<div class="node-editor debug-editor">
+    @* ============================================================
+    // ORIGINAL CODE (lines 20-80):
+    // ------------------------------------------------------------
+    // <div class="form-row">
+    //     <label for="node-input-typed-complete"><i class="fa fa-list"></i> Output</label>
+    //     <input id="node-input-typed-complete" type="text" style="width: 70%">
+    //     <input id="node-input-complete" type="hidden">
+    // </div>
+    // ------------------------------------------------------------
+    // TRANSLATION:
+    // ============================================================ *@
+    
+    <div class="form-row">
+        <label for="node-input-name">
+            <i class="fa fa-tag"></i> Name
+        </label>
+        <input type="text" id="node-input-name" @bind="Name" placeholder="Name" />
+    </div>
+
+    <div class="form-row">
+        <label>
+            <i class="fa fa-list"></i> Output
+        </label>
+        <select @bind="Complete" class="node-input-complete">
+            <option value="false">msg.payload</option>
+            <option value="true">complete msg object</option>
+            <option value="property">msg. property</option>
+        </select>
+    </div>
+
+    @if (Complete == "property")
+    {
+        <div class="form-row">
+            <label></label>
+            <span>msg.</span>
+            <input type="text" @bind="TargetProperty" placeholder="property" style="width:calc(70% - 40px)" />
+        </div>
+    }
+
+    <div class="form-row">
+        <label>
+            <i class="fa fa-eye"></i> To
+        </label>
+        <select @bind="TargetType" class="node-input-targetType">
+            <option value="debug">debug window</option>
+            <option value="console">system console</option>
+            <option value="status">node status (32 characters)</option>
+        </select>
+    </div>
+
+    @if (TargetType == "debug" || TargetType == "console")
+    {
+        <div class="form-row">
+            <label>
+                <i class="fa fa-id-card-o"></i> Name
+            </label>
+            <div class="typed-input-container">
+                <input type="checkbox" @bind="TostringEnabled" style="width:auto" />
+                <span style="margin-left:5px">toString()</span>
+            </div>
+        </div>
+    }
+
+    <div class="form-row">
+        <label>
+            <i class="fa fa-toggle-on"></i> Status
+        </label>
+        <div>
+            <input type="checkbox" @bind="Active" style="width:auto" id="node-input-active" />
+            <label for="node-input-active" style="width:auto; margin-left:5px">Enabled</label>
+        </div>
+    </div>
+
+    @if (TargetType == "status")
+    {
+        <div class="form-row">
+            <label>
+                <i class="fa fa-info"></i> Status
+            </label>
+            <select @bind="StatusType" style="width:auto">
+                <option value="auto">auto</option>
+                <option value="msg">msg.status</option>
+            </select>
+            <span class="input-help">Status display mode</span>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public JsonObject? Node { get; set; }
+    [Parameter] public EventCallback<JsonObject> NodeChanged { get; set; }
+
+    private string Name { get; set; } = "";
+    private string Complete { get; set; } = "false";
+    private string TargetProperty { get; set; } = "payload";
+    private string TargetType { get; set; } = "debug";
+    private bool TostringEnabled { get; set; } = false;
+    private bool Active { get; set; } = true;
+    private string StatusType { get; set; } = "auto";
+
+    protected override void OnParametersSet()
+    {
+        if (Node is not null)
+        {
+            Name = Node["name"]?.GetValue<string>() ?? "";
+            
+            var complete = Node["complete"]?.GetValue<string>();
+            if (complete == "true")
+            {
+                Complete = "true";
+            }
+            else if (complete == "false" || complete == "payload" || string.IsNullOrEmpty(complete))
+            {
+                Complete = "false";
+            }
+            else
+            {
+                Complete = "property";
+                TargetProperty = complete;
+            }
+            
+            TargetType = Node["targetType"]?.GetValue<string>() ?? "debug";
+            TostringEnabled = Node["tostatus"]?.GetValue<bool>() ?? false;
+            Active = Node["active"]?.GetValue<bool>() ?? true;
+            StatusType = Node["statusType"]?.GetValue<string>() ?? "auto";
+        }
+    }
+
+    public JsonObject GetNodeConfig()
+    {
+        var node = Node?.DeepClone().AsObject() ?? new JsonObject();
+        node["name"] = Name;
+        
+        if (Complete == "property")
+        {
+            node["complete"] = TargetProperty;
+        }
+        else
+        {
+            node["complete"] = Complete;
+        }
+        
+        node["targetType"] = TargetType;
+        node["tostatus"] = TostringEnabled;
+        node["active"] = Active;
+        node["statusType"] = StatusType;
+        
+        return node;
+    }
+}
